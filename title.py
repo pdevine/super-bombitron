@@ -162,14 +162,17 @@ class Menu:
         self.horizonPos = 0
 
         self.active = True
+        self.setChoices()
 
-    def update(self, tick):
-        if not self.active:
-            self.horizonPos += 20
-        else:
-            self.horizonPos = 0
+    def imageCollide(self, pos):
+        for count, (image, rect) in enumerate(self.imageChoices):
+            if rect.collidepoint(pos):
+                self.choice = count
+                self.setChoices()
 
-    def draw(self):
+
+    def setChoices(self):
+        self.imageChoices = []
 
         for count, item in enumerate(self.choices):
             if count == self.choice:
@@ -182,9 +185,24 @@ class Menu:
             else:
                 x = 320 - self.horizonPos - text.get_width() / 2
 
-            self.win.blit(text, (x, count * 80 + 200))
+            rect = text.get_rect()
+            rect.topleft = (x, count * 80 + 200)
 
-        
+            self.imageChoices.append((text, rect))
+
+    def update(self, tick):
+        if not self.active:
+            if self.horizonPos < 500:
+                self.horizonPos += 20
+        else:
+            self.horizonPos = 0
+
+    def draw(self):
+        for count, (image, rect) in enumerate(self.imageChoices):
+            if count == 1:
+                self.win.blit(image, (rect.x - self.horizonPos, rect.y))
+            else:
+                self.win.blit(image, (rect.x + self.horizonPos, rect.y))
 
 if __name__ == '__main__':
     pygame.init()
@@ -202,11 +220,29 @@ if __name__ == '__main__':
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
+            elif event.type == pygame.MOUSEMOTION:
+                if menu.active:
+                    menu.imageCollide(event.pos)
+                
+            elif event.type == pygame.MOUSEBUTTONUP:
+                if menu.active:
+                    currentChoice = menu.choice
+                    menu.choice = -1
+                    menu.imageCollide(event.pos)
+                    if menu.choice > -1:
+                        titleBg.toggleActive()
+                        title.toggleActive()
+                        menu.active = not menu.active
+                    menu.choice = currentChoice
+                    menu.setChoices()
+
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_DOWN:
                     menu.choice += 1
+                    menu.setChoices()
                 elif event.key == pygame.K_UP:
                     menu.choice -= 1
+                    menu.setChoices()
                 else:
                     titleBg.toggleActive()
                     title.toggleActive()

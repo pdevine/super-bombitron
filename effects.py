@@ -1,10 +1,15 @@
 import pygame
 import random
 
+from math import sqrt, sin, cos, atan2, log
+
 from random import randint
-from bombs import dataName
+from util import dataName
 
 BOMB_IMG = pygame.image.load(dataName('bigbomb2.png'))
+TILE_IMG = pygame.image.load('data/tile.png')
+TILE_WIDTH = 20
+TILE_HEIGHT = 20
 
 class Spark:
     lifetimeRange = (100, 350)
@@ -169,19 +174,85 @@ class Explosion:
 def centerImage(image1, image2):
     return image1.get_width() / 2 - image2.get_width() / 2
 
+class SlideTile:
+    def __init__(self, win, pos, finalPos):
+        self.win = win
+
+        self.image = TILE_IMG.copy()
+        self.rect = self.image.get_rect()
+        self.rect.center = pos
+
+        self.velocityX = 0
+        self.velocityY = 0
+
+        self.finalPos = finalPos
+        
+
+    def update(self, tick):
+        opp = self.finalPos[0] - self.rect.center[0]
+        adj = self.finalPos[1] - self.rect.center[1]
+
+        rad = atan2(opp, adj)
+
+        self.velocityX = 8 * sin(rad)
+        self.velocityY = 15 * cos(rad)
+
+        #print "x = %f y=%f" % (self.velocityX, self.velocityY)
+
+        distance = sqrt(pow(self.finalPos[0] - self.rect.center[0], 2) + \
+                        pow(self.finalPos[1] - self.rect.center[1], 2))
+
+        if distance < 100 and distance > 8:
+            braking = log(distance, 10) - 1
+            self.velocityX *= braking
+            self.velocityY *= braking
+        elif distance <= 8:
+            self.velocityX = 0
+            self.velocityY = 0
+            self.rect.center = self.finalPos
+
+        self.rect.x += self.velocityX
+        self.rect.y += self.velocityY
+
+    def draw(self):
+        self.win.blit(self.image, self.rect)
+    
+class SlideTileGrid:
+    def __init__(self, win, width, height):
+        self.tiles = []
+
+        offsetX = int(320 - width / 2.0 * TILE_WIDTH) + 10
+        offsetY = 480 - int(240 - height / 2.0 * TILE_HEIGHT)
+
+        for row in range(width):
+            for col in range(height):
+
+                self.tiles.append(
+                    SlideTile(win, (offsetX + row * 20, 0 - col * 60),
+                                   (offsetX + row * 20, offsetY - col * 20)))
+
+    def update(self, tick):
+        for tile in self.tiles:
+            tile.update(tick)
+
+    def draw(self):
+        for tile in self.tiles:
+            tile.draw()
+
+
 if __name__ == '__main__':
     import pygame
     pygame.init()
 
-    win = pygame.display.set_mode((800, 600))
+    win = pygame.display.set_mode((640, 480))
 
     clock = pygame.time.Clock()
 
     bomb = Bomb(win, pos=(570,200), finalPos=(130,200), rot=-81)
     explosion = Explosion(win, (100, 100))
 
-    while True:
-        tick = clock.tick()
+    while False:
+        tick = clock.tick(30)
 
         bomb.update(tick)
         explosion.update(tick)
@@ -194,6 +265,19 @@ if __name__ == '__main__':
             explosion.explode()
 
         explosion.draw()
+
+        pygame.display.flip()
+
+    tiles = SlideTileGrid(win, 9, 9)
+
+    while True:
+        tick = clock.tick(30)
+
+        tiles.update(tick)
+
+        win.fill((200, 200, 255))
+
+        tiles.draw()
 
         pygame.display.flip()
 

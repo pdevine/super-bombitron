@@ -38,11 +38,7 @@ import os.path
 
 import effects
 
-def dataName(fileName):
-    if os.path.exists(os.path.join('data', fileName)):
-        return os.path.join('data', fileName)
-    else:
-        return fileName
+from util import dataName
 
 tileImage = pygame.image.load(dataName('tile.png'))
 bombImage = pygame.image.load(dataName('bomb.png'))
