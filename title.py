@@ -81,6 +81,7 @@ class Title:
     def toggleActive(self):
         if self.active:
             self.active = False
+            self.bomb.explode()
             self.bomb.totalTime = 3
         else:
             self.active = True

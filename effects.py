@@ -1,3 +1,17 @@
+
+import pygame
+import random
+
+from math import sqrt, sin, cos, atan2, log
+
+from random import randint
+from util import dataName
+
+BOMB_IMG = pygame.image.load(dataName('bigbomb2.png'))
+TILE_IMG = pygame.image.load('data/tile.png')
+TILE_WIDTH = 20
+TILE_HEIGHT = 20
+
 class SpinTile:
     def __init__(self, win):
         self.win = win
@@ -27,19 +41,6 @@ class SpinTile:
     
     def draw(self):
         self.win.blit(self.image, self.rect.topleft)
-
-import pygame
-import random
-
-from math import sqrt, sin, cos, atan2, log
-
-from random import randint
-from util import dataName
-
-BOMB_IMG = pygame.image.load(dataName('bigbomb2.png'))
-TILE_IMG = pygame.image.load('data/tile.png')
-TILE_WIDTH = 20
-TILE_HEIGHT = 20
 
 class Spark:
     lifetimeRange = (100, 350)
@@ -113,6 +114,11 @@ class Bomb:
 
         self.sparks = SparkManager(win, 
             (self.rect.x + self.image.get_width(), self.rect.y))
+
+    def explode(self):
+        self.rect.center = self.finalPos
+        self.rot = 0
+        self.image = BOMB_IMG.copy()
 
     def reset(self):
         self.rect.center = self.pos
