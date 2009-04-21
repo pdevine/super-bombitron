@@ -10,41 +10,11 @@ from bombs import dataName
 
 TILE_IMG = pygame.image.load(dataName('tile.png'))
 
-class SpinTile:
-    def __init__(self, win):
-        self.win = win
-
-        self.rot = 0
-        self.rotSpeed = random.choice([3, -3])
-
-        self.pos = (random.randint(20, 620), 0)
-        self.image = TILE_IMG.copy()
-
-        self.rect = TILE_IMG.get_rect()
-        self.rect.center = self.pos
-
-        self.dead = False
-
-    def update(self, tick):
-        center = self.rect.center
-        self.image = pygame.transform.rotate(TILE_IMG, self.rot)
-        self.rect = self.image.get_rect()
-        self.rect.center = center
-
-        self.rot += self.rotSpeed
-        self.rect.y += 4
-
-        if self.rect.top > 640:
-            self.dead = True
-
-    def draw(self):
-        self.win.blit(self.image, self.rect.topleft)
-
 class TitleBackground:
     def __init__(self, win):
         self.win = win
 
-        self.tiles = [SpinTile(self.win)]
+        self.tiles = [effects.SpinTile(self.win)]
 
         self.tileAppendSpeed = 500
         self.countDown = self.tileAppendSpeed
@@ -63,7 +33,7 @@ class TitleBackground:
             self.countDown -= tick
 
             if self.countDown <= 0:
-                self.tiles.append(SpinTile(self.win))
+                self.tiles.append(effects.SpinTile(self.win))
                 self.countDown = self.tileAppendSpeed
 
         for tile in self.tiles:
@@ -172,7 +142,6 @@ class Menu:
                 self.choice = count
                 self.setChoices()
 
-
     def setChoices(self):
         self.imageChoices = []
 
@@ -194,10 +163,8 @@ class Menu:
 
     def update(self, tick):
         if not self.active:
-            if self.horizonPos < 500:
+            if self.horizonPos < 600:
                 self.horizonPos += 20
-            else:
-                self.finished = True
         else:
             self.horizonPos = 0
 
@@ -208,61 +175,66 @@ class Menu:
             else:
                 self.win.blit(image, (rect.x + self.horizonPos, rect.y))
 
+class TitleManager:
+    def __init__(self, win):
+        self.active = True
+
+        self.titleBg = TitleBackground(win)
+        self.title = Title(win)
+        self.menu = Menu(win)
+
+    def update(self, tick):
+        self.titleBg.update(tick)
+        self.title.update(tick)
+        self.menu.update(tick)
+
+        if self.title.explosion.exploded:
+            self.active = False
+
+    def draw(self):
+        self.titleBg.draw()
+        self.title.draw()
+        self.menu.draw()
+
+    def eventHandler(self, event):
+        if event.type == pygame.MOUSEMOTION:
+            if self.menu.active:
+                self.menu.imageCollide(event.pos)
+                
+        elif event.type == pygame.MOUSEBUTTONUP:
+            if self.menu.active:
+                currentChoice = self.menu.choice
+                self.menu.choice = -1
+                self.menu.imageCollide(event.pos)
+                if self.menu.choice > -1:
+                    self.titleBg.toggleActive()
+                    self.title.toggleActive()
+                    self.menu.active = not self.menu.active
+                self.menu.choice = currentChoice
+                self.menu.setChoices()
+
 if __name__ == '__main__':
     pygame.init()
 
     win = pygame.display.set_mode((640, 480))
 
-
     clock = pygame.time.Clock()
 
-    titleBg = TitleBackground(win)
-    title = Title(win)
-    menu = Menu(win)
+    titleManager = TitleManager(win)
 
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
-            elif event.type == pygame.MOUSEMOTION:
-                if menu.active:
-                    menu.imageCollide(event.pos)
-                
-            elif event.type == pygame.MOUSEBUTTONUP:
-                if menu.active:
-                    currentChoice = menu.choice
-                    menu.choice = -1
-                    menu.imageCollide(event.pos)
-                    if menu.choice > -1:
-                        titleBg.toggleActive()
-                        title.toggleActive()
-                        menu.active = not menu.active
-                    menu.choice = currentChoice
-                    menu.setChoices()
-
-            elif event.type == pygame.KEYUP:
-                if event.key == pygame.K_DOWN:
-                    menu.choice += 1
-                    menu.setChoices()
-                elif event.key == pygame.K_UP:
-                    menu.choice -= 1
-                    menu.setChoices()
-                else:
-                    titleBg.toggleActive()
-                    title.toggleActive()
-                    menu.active = not menu.active
+            titleManager.eventHandler(event)
 
         tick = clock.tick(30)
 
-        titleBg.update(tick)
-        title.update(tick)
-        menu.update(tick)
+        titleManager.update(tick)
 
         win.fill((200, 200, 255))
 
-        titleBg.draw()
-        title.draw()
-        menu.draw()
+        titleManager.draw()
 
         pygame.display.flip()
 

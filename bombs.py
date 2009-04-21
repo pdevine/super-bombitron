@@ -46,8 +46,6 @@ bombHitImage = pygame.image.load(dataName('bomb-inverse.png'))
 
 flagImage = pygame.image.load(dataName('flag.png'))
 
-win = None
-
 GAME_SET_BOMBS = 1
 GAME_ON = 2
 GAME_OVER = 3
@@ -66,7 +64,9 @@ for x in range(0, 8):
     bombImageDict[x] = pygame.image.load(dataName('%d.png' % x))
 
 class Tile:
-    def __init__(self, pos):
+    def __init__(self, win, pos):
+        self.win = win
+
         self.bomb = False
         self.bombCount = 0
 
@@ -94,8 +94,8 @@ class Tile:
             if not tile:
                 tile = flagImage
 
-        win.blit(tile, (self.column * TILE_WIDTH + offset_x,
-                        self.row * TILE_HEIGHT + offset_y))
+        self.win.blit(tile, (self.column * TILE_WIDTH + offset_x,
+                      self.row * TILE_HEIGHT + offset_y))
 
 
 class Grid:
@@ -107,7 +107,7 @@ class Grid:
 
         for y in range(0, height):
             for x in range(0, width):
-                self.grid.append(Tile((x, y)))
+                self.grid.append(Tile(self.win, (x, y)))
 
     def __getitem__(self, key):
         return self.grid[key]
@@ -191,8 +191,8 @@ class Grid:
             return pos + self.width + 1
 
 class BombGrid(Grid):
-    def __init__(self, width=10, height=10, totalBombs=9):
-        global win
+    def __init__(self, win, width=10, height=10, totalBombs=9):
+        self.win = win
         self.active = False
 
         self.width = width
@@ -200,7 +200,8 @@ class BombGrid(Grid):
         self.totalBombs = totalBombs
 
         self.levelTime = 40
-        self.bombEffect = effects.Bomb(win, self.levelTime, pos=(40, 40), finalPos=(40, 40))
+        self.bombEffect = \
+            effects.Bomb(win, self.levelTime, pos=(40, 40), finalPos=(40, 40))
         self.explosionEffect = effects.Explosion(win, (-10, 50))
 
         self.reset()
@@ -266,8 +267,8 @@ class BombGrid(Grid):
 
         flagCountText = "%d/%d" % (self.flags, self.totalBombs)
         flagCountImg = self.ft.render(flagCountText, True, (0, 0, 0))
-        win.blit(flagCountImg,
-            (win.get_width() - flagCountImg.get_width() - EDGE_WIDTH, 20))
+        self.win.blit(flagCountImg,
+            (self.win.get_width() - flagCountImg.get_width() - EDGE_WIDTH, 20))
 
 
         if (self.gridState == GAME_OVER and self.winner) or \
@@ -431,8 +432,17 @@ class BombGrid(Grid):
 
         return self.width * row + column
 
+class BombGridManager:
+    def __init__(self, win, columns, rows):
+        self.slideTiles = effects.SlideTileGrid(win, columns, rows)
+
+    def update(self, tick):
+        self.slideTiles.update(tick)
+
+    def draw(self):
+        self.slideTiles.draw()
+
 def main(boardType):
-    global win
     pygame.init()
 
     rows, cols, bombs = boardType
@@ -441,7 +451,7 @@ def main(boardType):
     height = TILE_HEIGHT * rows + EDGE_TOP_HEIGHT + EDGE_BOTTOM_HEIGHT
     win = pygame.display.set_mode((width, height))
 
-    bg = BombGrid(width=cols, height=rows, totalBombs=bombs)
+    bg = BombGrid(win, width=cols, height=rows, totalBombs=bombs)
     bg.active = True
 
     bg.offset_x = EDGE_WIDTH

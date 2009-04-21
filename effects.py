@@ -1,3 +1,33 @@
+class SpinTile:
+    def __init__(self, win):
+        self.win = win
+
+        self.rot = 0
+        self.rotSpeed = random.choice([3, -3])
+
+        self.pos = (random.randint(20, 620), 0)
+        self.image = TILE_IMG.copy()
+
+        self.rect = TILE_IMG.get_rect()
+        self.rect.center = self.pos
+
+        self.dead = False
+
+    def update(self, tick):
+        center = self.rect.center
+        self.image = pygame.transform.rotate(TILE_IMG, self.rot)
+        self.rect = self.image.get_rect()
+        self.rect.center = center
+
+        self.rot += self.rotSpeed
+        self.rect.y += 4
+
+        if self.rect.top > 640:
+            self.dead = True
+    
+    def draw(self):
+        self.win.blit(self.image, self.rect.topleft)
+
 import pygame
 import random
 
@@ -64,7 +94,8 @@ class SparkManager:
             spark.draw()
 
 class Bomb:
-    def __init__(self, win, totalTime=10, rot=0, pos=(170, 200), finalPos=(170, 200)):
+    def __init__(self, win, totalTime=10, rot=0, pos=(170, 200),
+                 finalPos=(170, 200)):
         self.image = BOMB_IMG.copy()
         self.pos = pos
         self.finalPos = finalPos
@@ -142,6 +173,7 @@ class Explosion:
         self.clearImageTime = 1200
         self.shortString = True
         self.explosion = False
+        self.exploded = False
 
     def explode(self):
         self.explosion = True
@@ -149,9 +181,12 @@ class Explosion:
     def update(self, tick):
         if self.explosion and self.fullTextTime > 0:
             self.fullTextTime -= tick
-        elif self.explosion and self.fullTextTime <= 0:
+        elif self.explosion and self.clearImageTime > 0 and \
+           self.fullTextTime <= 0:
             self.shortString = False
             self.clearImageTime -= tick
+        elif self.clearImageTime <= 0:
+            self.exploded = True
 
     def draw(self):
         if not self.explosion or self.clearImageTime <= 0:
@@ -177,6 +212,8 @@ def centerImage(image1, image2):
 class SlideTile:
     def __init__(self, win, pos, finalPos):
         self.win = win
+
+        self.finished = False
 
         self.image = TILE_IMG.copy()
         self.rect = self.image.get_rect()
@@ -210,6 +247,7 @@ class SlideTile:
             self.velocityX = 0
             self.velocityY = 0
             self.rect.center = self.finalPos
+            self.finished = True
 
         self.rect.x += self.velocityX
         self.rect.y += self.velocityY
@@ -219,6 +257,7 @@ class SlideTile:
     
 class SlideTileGrid:
     def __init__(self, win, width, height):
+        self.finished = False
         self.tiles = []
 
         offsetX = int(320 - width / 2.0 * TILE_WIDTH) + 10
@@ -232,12 +271,49 @@ class SlideTileGrid:
                                    (offsetX + row * 20, offsetY - col * 20)))
 
     def update(self, tick):
+        # set the finished flag to true but turn it back off
+        # if we're not done
+        self.finished = True
+
         for tile in self.tiles:
             tile.update(tick)
+
+            if not tile.finished:
+                self.finished = False
 
     def draw(self):
         for tile in self.tiles:
             tile.draw()
+
+class SpinTile:
+    def __init__(self, win):
+        self.win = win
+
+        self.rot = 0
+        self.rotSpeed = random.choice([3, -3])
+
+        self.pos = (random.randint(20, 620), 0)
+        self.image = TILE_IMG.copy()
+
+        self.rect = TILE_IMG.get_rect()
+        self.rect.center = self.pos
+
+        self.dead = False
+
+    def update(self, tick):
+        center = self.rect.center
+        self.image = pygame.transform.rotate(TILE_IMG, self.rot)
+        self.rect = self.image.get_rect()
+        self.rect.center = center
+
+        self.rot += self.rotSpeed
+        self.rect.y += 4
+
+        if self.rect.top > 640:
+            self.dead = True
+    
+    def draw(self):
+        self.win.blit(self.image, self.rect.topleft)
 
 
 if __name__ == '__main__':
