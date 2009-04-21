@@ -97,7 +97,8 @@ class Title:
         self.pos = (-200, 80)
         self.ft = pygame.font.Font(dataName('Galatican.ttf'), 86)
 
-        self.titleText = pygame.Surface((448, 100), flags=pygame.SRCALPHA)
+        self.titleText = pygame.Surface((448, 100)).convert_alpha()
+        self.titleText.fill((0, 0, 0, 0))
 
         # blit the images twice to get the offsets correct
         self.titleText.blit(self.ft.render("MBITRON", True, (0, 0, 0)),
@@ -162,6 +163,7 @@ class Menu:
         self.horizonPos = 0
 
         self.active = True
+        self.finished = False
         self.setChoices()
 
     def imageCollide(self, pos):
@@ -194,6 +196,8 @@ class Menu:
         if not self.active:
             if self.horizonPos < 500:
                 self.horizonPos += 20
+            else:
+                self.finished = True
         else:
             self.horizonPos = 0
 
