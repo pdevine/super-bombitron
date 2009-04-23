@@ -281,12 +281,12 @@ class BombGrid(Grid):
             gameTextImg = self.awesomeFt.render(gameText, True, (0, 0, 255))
             gameTextBgImg = self.awesomeFt.render(gameText, True, (0, 0, 0))
 
-            win.blit(gameTextBgImg,
-                (win.get_width() / 2 - gameTextImg.get_width() / 2,
-                 win.get_height() / 2))
-            win.blit(gameTextImg,
-                (win.get_width() / 2 - gameTextImg.get_width() / 2 + 5,
-                 win.get_height() / 2 + 5))
+            self.win.blit(gameTextBgImg,
+                (self.win.get_width() / 2 - gameTextImg.get_width() / 2,
+                 self.win.get_height() / 2))
+            self.win.blit(gameTextImg,
+                (self.win.get_width() / 2 - gameTextImg.get_width() / 2 + 5,
+                 self.win.get_height() / 2 + 5))
 
         self.bombEffect.draw()
 #        timer = self.ft.render(time.strftime("%M:%S", time.gmtime(self.timer)),
