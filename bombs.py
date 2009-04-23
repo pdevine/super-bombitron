@@ -445,6 +445,11 @@ class BombGridManager:
         self.offsetY = 480 - int(240 - rows / 2.0 * TILE_HEIGHT) - \
             rows * TILE_HEIGHT
 
+        # XXX - fixme
+
+        self.bombGrid.offsetX = self.offsetX
+        self.bombGrid.offsetY = self.offsetY
+
     def update(self, tick):
         if not self.slideTiles.finished:
             self.slideTiles.update(tick)

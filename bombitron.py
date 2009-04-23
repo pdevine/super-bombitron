@@ -24,6 +24,9 @@ def main():
 
             if title.active:
                 title.eventHandler(event)
+            else:
+                if event.type == pygame.MOUSEBUTTONUP:
+                    bombGrid.eventHandler(event)
 
         tick = clock.tick(30)
 
