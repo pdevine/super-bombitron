@@ -261,7 +261,7 @@ class BombGrid(Grid):
         else:
             self.gridState = GAME_ON
 
-    def draw(self, offset_x, offset_y):
+    def draw(self, offset_x=0, offset_y=0):
         for tile in self.grid:
             tile.draw(offset_x, offset_y)
 
@@ -352,7 +352,10 @@ class BombGrid(Grid):
     def revealGrid(self):
         return self.__str__(mode='reveal')
 
-    def mouseUp(self, button, pos):
+    def eventHandler(self, event):
+        button = event.button
+        pos = event.pos
+
         localX = pos[0] - self.offset_x
         localY = pos[1] - self.offset_y
 
@@ -433,14 +436,30 @@ class BombGrid(Grid):
         return self.width * row + column
 
 class BombGridManager:
-    def __init__(self, win, columns, rows):
+    def __init__(self, win, columns, rows, bombs=10):
         self.slideTiles = effects.SlideTileGrid(win, columns, rows)
+        self.bombGrid = BombGrid(win, width=columns, height=rows,
+                                 totalBombs=bombs)
+
+        self.offsetX = int(320 - columns / 2.0 * TILE_WIDTH)
+        self.offsetY = 480 - int(240 - rows / 2.0 * TILE_HEIGHT) - \
+            rows * TILE_HEIGHT
 
     def update(self, tick):
-        self.slideTiles.update(tick)
+        if not self.slideTiles.finished:
+            self.slideTiles.update(tick)
+        else:
+            self.bombGrid.update(tick)
 
     def draw(self):
-        self.slideTiles.draw()
+        if not self.slideTiles.finished:
+            self.slideTiles.draw()
+        else:
+            self.bombGrid.draw(self.offsetX, self.offsetY)
+
+    def eventHandler(self, event):
+        if self.slideTiles.finished:
+            self.bombGrid.eventHandler(event)
 
 def main(boardType):
     pygame.init()
@@ -464,7 +483,8 @@ def main(boardType):
             if event.type == pygame.QUIT:
                 sys.exit()
             elif event.type == pygame.MOUSEBUTTONUP:
-                bg.mouseUp(event.button, event.pos)
+                bg.eventHandler(event)
+                #bg.mouseUp(event.button, event.pos)
 
         # keep the frame rate low
         tick = clock.tick(30)

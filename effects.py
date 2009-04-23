@@ -245,21 +245,22 @@ class SlideTile:
         distance = sqrt(pow(self.finalPos[0] - self.rect.center[0], 2) + \
                         pow(self.finalPos[1] - self.rect.center[1], 2))
 
-        if distance < 100 and distance > 8:
+        if distance < 100 and distance > 11:
             braking = log(distance, 10) - 1
             self.velocityX *= braking
             self.velocityY *= braking
-        elif distance <= 8:
+        elif distance <= 11:
             self.velocityX = 0
             self.velocityY = 0
-            self.rect.center = self.finalPos
+            self.rect.bottom = self.finalPos[1]
+            #self.rect.center = self.finalPos
             self.finished = True
 
         self.rect.x += self.velocityX
         self.rect.y += self.velocityY
 
     def draw(self):
-        self.win.blit(self.image, self.rect)
+        self.win.blit(self.image, self.rect.topleft)
     
 class SlideTileGrid:
     def __init__(self, win, width, height):
