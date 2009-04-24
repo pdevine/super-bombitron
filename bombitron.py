@@ -12,6 +12,10 @@ LEVELS = \
       (9, 9, 10, 90, ''),
       (9, 9, 10, 45, '')
      ),
+     ((16, 16, 40, 300, ''),
+     ),
+     ((30, 16, 99, 500, ''),
+     )
     )
 
 LEVEL_ROWS = 0
@@ -48,10 +52,11 @@ def main():
             title.update(tick)
         else:
             if not bombGrid:
-                level = LEVELS[0][currentLevel]
+                level = LEVELS[title.menu.choice][currentLevel]
                 bombGrid = BombGridManager(win, level[LEVEL_ROWS],
                                                 level[LEVEL_COLS],
-                                                level[LEVEL_BOMBS])
+                                                level[LEVEL_BOMBS],
+                                                level[LEVEL_TIME])
                 
             bombGrid.update(tick)
 

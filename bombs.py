@@ -191,7 +191,7 @@ class Grid:
             return pos + self.width + 1
 
 class BombGrid(Grid):
-    def __init__(self, win, width=10, height=10, totalBombs=9):
+    def __init__(self, win, width=10, height=10, totalBombs=9, levelTime=40):
         self.win = win
         self.active = False
 
@@ -199,7 +199,7 @@ class BombGrid(Grid):
         self.height = height
         self.totalBombs = totalBombs
 
-        self.levelTime = 40
+        self.levelTime = levelTime
         self.bombEffect = \
             effects.Bomb(win, self.levelTime, pos=(40, 40), finalPos=(40, 40))
         self.explosionEffect = effects.Explosion(win, (-10, 50))
@@ -456,10 +456,10 @@ class BombGrid(Grid):
         return self.width * row + column
 
 class BombGridManager:
-    def __init__(self, win, columns, rows, bombs=10):
+    def __init__(self, win, columns, rows, bombs=10, time=0):
         self.slideTiles = effects.SlideTileGrid(win, columns, rows)
         self.bombGrid = BombGrid(win, width=columns, height=rows,
-                                 totalBombs=bombs)
+                                 totalBombs=bombs, levelTime=time)
 
         self.offsetX = int(320 - columns / 2.0 * TILE_WIDTH)
         self.offsetY = 480 - int(240 - rows / 2.0 * TILE_HEIGHT) - \
