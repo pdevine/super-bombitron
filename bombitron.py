@@ -7,6 +7,18 @@ from bombs import BombGridManager
 SCREEN_WIDTH = 640
 SCREEN_HEIGHT = 480
 
+LEVELS = \
+    (((9, 9, 10, 120, ''),
+      (9, 9, 10, 90, ''),
+      (9, 9, 10, 45, '')
+     ),
+    )
+
+LEVEL_ROWS = 0
+LEVEL_COLS = 1
+LEVEL_BOMBS = 2
+LEVEL_TIME = 3
+
 def main():
     pygame.init()
 
@@ -15,7 +27,10 @@ def main():
     clock = pygame.time.Clock()
 
     title = TitleManager(win)
-    bombGrid = BombGridManager(win, 9, 9)
+    #bombGrid = BombGridManager(win, 9, 9)
+    bombGrid = None
+
+    currentLevel = 0
 
     while True:
         for event in pygame.event.get():
@@ -25,14 +40,19 @@ def main():
             if title.active:
                 title.eventHandler(event)
             else:
-                if event.type == pygame.MOUSEBUTTONUP:
-                    bombGrid.eventHandler(event)
+                bombGrid.eventHandler(event)
 
         tick = clock.tick(30)
 
         if title.active:
             title.update(tick)
         else:
+            if not bombGrid:
+                level = LEVELS[0][currentLevel]
+                bombGrid = BombGridManager(win, level[LEVEL_ROWS],
+                                                level[LEVEL_COLS],
+                                                level[LEVEL_BOMBS])
+                
             bombGrid.update(tick)
 
         win.fill((200, 200, 255))
@@ -40,7 +60,8 @@ def main():
         if title.active:
             title.draw()
         else:
-            bombGrid.draw()
+            if bombGrid:
+                bombGrid.draw()
 
         pygame.display.flip()
 

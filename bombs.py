@@ -208,14 +208,23 @@ class BombGrid(Grid):
 
         self.x = 0
         self.y = 0
-        self.offset_x = 120
-        self.offset_y = 100
+
+        #self.offset_x = 120
+        #self.offset_y = 100
+
+        #self.offsetX = int(320 - columns / 2.0 * TILE_WIDTH)
+        #self.offsetY = 480 - int(240 - rows / 2.0 * TILE_HEIGHT) - \
+        #    rows * TILE_HEIGHT
+
+        self.offset_x = int(self.win.get_width() / 2 - width / 2.0 * TILE_WIDTH)
+        self.offset_y = self.win.get_height() - int(240 - height / 2.0 * 
+                        TILE_HEIGHT) - (height * TILE_HEIGHT)
 
         self.timerOn = False
         self.timer = 0
 
         self.ft = pygame.font.SysFont('Arial', 40)
-        self.awesomeFt = pygame.font.Font(dataName('badabb__.ttf'), 50)
+        self.awesomeFt = pygame.font.Font(dataName('badabb__.ttf'), 90)
 
     def reset(self):
         Grid.__init__(self, width=self.width, height=self.height)
@@ -274,19 +283,27 @@ class BombGrid(Grid):
         if (self.gridState == GAME_OVER and self.winner) or \
            self.gridState == GAME_PAUSED:
             if self.gridState == GAME_OVER:
-                gameText = "AWESOME"
+                gameText = "SUPER!"
             else:
                 gameText = "PAUSED"
 
-            gameTextImg = self.awesomeFt.render(gameText, True, (0, 0, 255))
+            gameTextImg = self.awesomeFt.render(gameText, True, (255, 0, 0))
             gameTextBgImg = self.awesomeFt.render(gameText, True, (0, 0, 0))
 
+            gameTextRect = gameTextImg.get_rect()
+            gameTextRect.center = (self.win.get_width() / 2,
+                                   self.win.get_height() / 2)
+
             self.win.blit(gameTextBgImg,
-                (self.win.get_width() / 2 - gameTextImg.get_width() / 2,
-                 self.win.get_height() / 2))
-            self.win.blit(gameTextImg,
-                (self.win.get_width() / 2 - gameTextImg.get_width() / 2 + 5,
-                 self.win.get_height() / 2 + 5))
+                          (gameTextRect.topleft[0] - 5,
+                           gameTextRect.topleft[1] + 5))
+            self.win.blit(gameTextImg, gameTextRect.topleft)
+
+            #    (self.win.get_width() / 2 - gameTextImg.get_width() / 2,
+            #     self.win.get_height() / 2))
+            #self.win.blit(gameTextImg,
+            #    (self.win.get_width() / 2 - gameTextImg.get_width() / 2 + 5,
+            #     self.win.get_height() / 2 + 5))
 
         self.bombEffect.draw()
 #        timer = self.ft.render(time.strftime("%M:%S", time.gmtime(self.timer)),
@@ -353,63 +370,66 @@ class BombGrid(Grid):
         return self.__str__(mode='reveal')
 
     def eventHandler(self, event):
-        button = event.button
-        pos = event.pos
 
-        localX = pos[0] - self.offset_x
-        localY = pos[1] - self.offset_y
+        if event.type == pygame.MOUSEBUTTONUP:
 
-        if localX < 0 or localX > TILE_WIDTH * self.width or \
-           localY < 0 or localY > TILE_HEIGHT * self.height:
-            pos = -1
-        else:
-            pos = self.getTileNumber(localX, localY)
+            button = event.button
+            pos = event.pos
 
-        if button == 1:
-            if self.gridState == GAME_SET_BOMBS and pos != -1:
-                # start the game over
-                self.setBombs(pos)
-                self.revealPos(pos)
-                self.timerOn = True
-            elif self.gridState == GAME_PAUSED:
-                self.togglePaused()
-                return
-            elif self.gridState == GAME_OVER:
-                self.reset()
-                self.explosionEffect.reset()
-            elif self.gridState == GAME_ON:
-                if pos == -1:
+            localX = pos[0] - self.offset_x
+            localY = pos[1] - self.offset_y
+
+            if localX < 0 or localX > TILE_WIDTH * self.width or \
+               localY < 0 or localY > TILE_HEIGHT * self.height:
+                pos = -1
+            else:
+                pos = self.getTileNumber(localX, localY)
+
+            if button == 1:
+                if self.gridState == GAME_SET_BOMBS and pos != -1:
+                    # start the game over
+                    self.setBombs(pos)
+                    self.revealPos(pos)
+                    self.timerOn = True
+                elif self.gridState == GAME_PAUSED:
                     self.togglePaused()
                     return
+                elif self.gridState == GAME_OVER:
+                    self.reset()
+                    self.explosionEffect.reset()
+                elif self.gridState == GAME_ON:
+                    if pos == -1:
+                        self.togglePaused()
+                        return
 
-                if self.grid[pos].flagged:
+                    if self.grid[pos].flagged:
+                        return
+
+                    self.revealPos(pos)
+                    if self.grid[pos].bomb:
+                        self.grid[pos].hitBomb = True
+                        self.revealAll()
+                        self.gridState = GAME_OVER 
+                        self.timerOn = False
+                        self.explosionEffect.explode()
+
+            elif button == 3:
+                if self.gridState == GAME_OVER:
                     return
 
-                self.revealPos(pos)
-                if self.grid[pos].bomb:
-                    self.grid[pos].hitBomb = True
-                    self.revealAll()
-                    self.gridState = GAME_OVER 
-                    self.timerOn = False
-                    self.explosionEffect.explode()
-
-        elif button == 3:
-            if self.gridState == GAME_OVER:
-                return
-
-            if self.flags > 0 and not self.grid[pos].revealed:
-                if self.grid[pos].flagged:
-                    self.flags += 1
-                    self.grid[pos].flagged = False
-                else:
-                    self.flags -= 1
-                    self.grid[pos].flagged = True
+                if self.flags > 0 and not self.grid[pos].revealed:
+                    if self.grid[pos].flagged:
+                        self.flags += 1
+                        self.grid[pos].flagged = False
+                    else:
+                        self.flags -= 1
+                        self.grid[pos].flagged = True
 
 
-        if self.checkAllMinesCleared() and not self.gridState == GAME_OVER:
-            self.gridState = GAME_OVER
-            self.winner = True
-            self.timerOn = False
+            if self.checkAllMinesCleared() and not self.gridState == GAME_OVER:
+                self.gridState = GAME_OVER
+                self.winner = True
+                self.timerOn = False
 
     def checkAllMinesCleared(self):
         for tile in self.grid:
