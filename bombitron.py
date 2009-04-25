@@ -44,7 +44,8 @@ def main():
             if title.active:
                 title.eventHandler(event)
             else:
-                bombGrid.eventHandler(event)
+                if bombGrid:
+                    bombGrid.eventHandler(event)
 
         tick = clock.tick(30)
 

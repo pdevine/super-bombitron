@@ -41,6 +41,7 @@ import effects
 from util import dataName
 
 tileImage = pygame.image.load(dataName('tile.png'))
+tileInverseImage = pygame.image.load(dataName('tile-inverse.png'))
 bombImage = pygame.image.load(dataName('bomb.png'))
 bombHitImage = pygame.image.load(dataName('bomb-inverse.png'))
 
@@ -73,13 +74,16 @@ class Tile:
         self.revealed = False
         self.flagged = False
         self.paused = False
+        self.inverse = False
 
         self.column = pos[0]
         self.row = pos[1]
         self.hitBomb = False
 
     def draw(self, offset_x, offset_y):
-        if self.paused or (not self.revealed and not self.flagged):
+        if self.paused or \
+           (not self.revealed and not self.flagged and \
+           not self.inverse):
             tile = tileImage
         elif self.flagged:
             tile = flagImage
@@ -93,6 +97,8 @@ class Tile:
 
             if not tile:
                 tile = flagImage
+        elif self.inverse:
+            tile = tileInverseImage
 
         self.win.blit(tile, (self.column * TILE_WIDTH + offset_x,
                       self.row * TILE_HEIGHT + offset_y))
@@ -374,16 +380,7 @@ class BombGrid(Grid):
         if event.type == pygame.MOUSEBUTTONUP:
 
             button = event.button
-            pos = event.pos
-
-            localX = pos[0] - self.offset_x
-            localY = pos[1] - self.offset_y
-
-            if localX < 0 or localX > TILE_WIDTH * self.width or \
-               localY < 0 or localY > TILE_HEIGHT * self.height:
-                pos = -1
-            else:
-                pos = self.getTileNumber(localX, localY)
+            pos = self.getTilePos(event.pos)
 
             if button == 1:
                 if self.gridState == GAME_SET_BOMBS and pos != -1:
@@ -413,6 +410,9 @@ class BombGrid(Grid):
                         self.timerOn = False
                         self.explosionEffect.explode()
 
+            elif button == 2:
+                self.grid[pos].inverse = False
+
             elif button == 3:
                 if self.gridState == GAME_OVER:
                     return
@@ -430,6 +430,27 @@ class BombGrid(Grid):
                 self.gridState = GAME_OVER
                 self.winner = True
                 self.timerOn = False
+
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+
+            button = event.button
+            pos = self.getTilePos(event.pos)
+
+            if button == 2:
+                self.grid[pos].inverse = True
+
+    def getTilePos(self, pos):
+        localX = pos[0] - self.offset_x
+        localY = pos[1] - self.offset_y
+
+        if localX < 0 or localX > TILE_WIDTH * self.width or \
+           localY < 0 or localY > TILE_HEIGHT * self.height:
+            pos = -1
+        else:
+            pos = self.getTileNumber(localX, localY)
+
+        return pos
+
 
     def checkAllMinesCleared(self):
         for tile in self.grid:
