@@ -8,7 +8,7 @@ from random import randint
 from util import dataName
 
 BOMB_IMG = pygame.image.load(dataName('bigbomb2.png'))
-TILE_IMG = pygame.image.load('data/tile.png')
+TILE_IMG = pygame.image.load(dataName('tile.png'))
 TILE_WIDTH = 20
 TILE_HEIGHT = 20
 

@@ -41,6 +41,7 @@ import effects
 from util import dataName
 
 tileImage = pygame.image.load(dataName('tile.png'))
+blinkImage = pygame.image.load(dataName('tile-red.png'))
 tileInverseImage = pygame.image.load(dataName('tile-inverse.png'))
 bombImage = pygame.image.load(dataName('bomb.png'))
 bombHitImage = pygame.image.load(dataName('bomb-inverse.png'))
@@ -75,6 +76,7 @@ class Tile:
         self.flagged = False
         self.paused = False
         self.inverse = False
+        self.blink = False
 
         self.column = pos[0]
         self.row = pos[1]
@@ -84,7 +86,10 @@ class Tile:
         if self.paused or \
            (not self.revealed and not self.flagged and \
            not self.inverse):
-            tile = tileImage
+            if not self.blink:
+                tile = tileImage
+            else:
+                tile = blinkImage
         elif self.flagged:
             tile = flagImage
         elif self.revealed:
@@ -197,9 +202,11 @@ class Grid:
             return pos + self.width + 1
 
 class BombGrid(Grid):
-    def __init__(self, win, width=10, height=10, totalBombs=9, levelTime=40):
+    def __init__(self, win, width=10, height=10, totalBombs=9, levelTime=40,
+                 blinkTime=-1):
         self.win = win
         self.active = False
+        self.autoBlink = blinkTime
 
         self.width = width
         self.height = height
@@ -215,13 +222,6 @@ class BombGrid(Grid):
         self.x = 0
         self.y = 0
 
-        #self.offset_x = 120
-        #self.offset_y = 100
-
-        #self.offsetX = int(320 - columns / 2.0 * TILE_WIDTH)
-        #self.offsetY = 480 - int(240 - rows / 2.0 * TILE_HEIGHT) - \
-        #    rows * TILE_HEIGHT
-
         self.offset_x = int(self.win.get_width() / 2 - width / 2.0 * TILE_WIDTH)
         self.offset_y = self.win.get_height() - int(240 - height / 2.0 * 
                         TILE_HEIGHT) - (height * TILE_HEIGHT)
@@ -231,6 +231,10 @@ class BombGrid(Grid):
 
         self.ft = pygame.font.SysFont('Arial', 40)
         self.awesomeFt = pygame.font.Font(dataName('badabb__.ttf'), 90)
+
+        self.blinkTime = 300
+        self.blinkCount = 300
+        self.blinkState = False
 
     def reset(self):
         Grid.__init__(self, width=self.width, height=self.height)
@@ -246,6 +250,13 @@ class BombGrid(Grid):
             self.timer += tick / 1000.0
 
             self.bombEffect.update(tick)
+
+            if self.bombEffect.totalTime <= self.autoBlink:
+                self.blinkCount -= tick
+                if self.blinkCount <= 0:
+                    self.blinkState = not self.blinkState
+                    self.blinkBombs(self.blinkState)
+                    self.blinkCount = self.blinkTime
 
             if self.bombEffect.totalTime <= 0:
                 self.revealAll()
@@ -305,16 +316,8 @@ class BombGrid(Grid):
                            gameTextRect.topleft[1] + 5))
             self.win.blit(gameTextImg, gameTextRect.topleft)
 
-            #    (self.win.get_width() / 2 - gameTextImg.get_width() / 2,
-            #     self.win.get_height() / 2))
-            #self.win.blit(gameTextImg,
-            #    (self.win.get_width() / 2 - gameTextImg.get_width() / 2 + 5,
-            #     self.win.get_height() / 2 + 5))
 
         self.bombEffect.draw()
-#        timer = self.ft.render(time.strftime("%M:%S", time.gmtime(self.timer)),
-#                               True, (0, 0, 0))
-#        win.blit(timer, (EDGE_WIDTH, 20))
 
         self.explosionEffect.draw()
 
@@ -470,6 +473,11 @@ class BombGrid(Grid):
             if not tile.flagged and tile.bomb:
                 tile.revealed = True
 
+    def blinkBombs(self, blinkState):
+        for tile in self.grid:
+            if not tile.flagged and not tile.revealed and tile.bomb:
+                tile.blink = blinkState
+
     def getTileNumber(self, x, y):
         column = x / TILE_WIDTH
         row = y / TILE_HEIGHT
@@ -477,10 +485,21 @@ class BombGrid(Grid):
         return self.width * row + column
 
 class BombGridManager:
-    def __init__(self, win, columns, rows, bombs=10, time=0):
+    def __init__(self, win, level):
+
+        columns = level['columns']
+        rows = level['rows']
+
+        bombs = level['bombs']
+        flags = level['flags']
+
+        levelTime = level['time']
+        blinkTime = level['autoblink']
+
         self.slideTiles = effects.SlideTileGrid(win, columns, rows)
         self.bombGrid = BombGrid(win, width=columns, height=rows,
-                                 totalBombs=bombs, levelTime=time)
+                                 totalBombs=bombs, levelTime=levelTime,
+                                 blinkTime=blinkTime)
 
         self.offsetX = int(320 - columns / 2.0 * TILE_WIDTH)
         self.offsetY = 480 - int(240 - rows / 2.0 * TILE_HEIGHT) - \
