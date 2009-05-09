@@ -420,6 +420,8 @@ class BombGrid(Grid):
                 if self.gridState == GAME_OVER:
                     return
 
+                self.grid[pos].inverse = False
+
                 if self.flags > 0 and not self.grid[pos].revealed:
                     if self.grid[pos].flagged:
                         self.flags += 1
@@ -435,12 +437,23 @@ class BombGrid(Grid):
                 self.timerOn = False
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
-
             button = event.button
-            pos = self.getTilePos(event.pos)
 
-            if button == 2:
+            if button in [1, 3]:
+                pos = self.getTilePos(event.pos)
                 self.grid[pos].inverse = True
+
+        elif event.type == pygame.MOUSEMOTION:
+            left, middle, right = event.buttons
+
+            if left or right:
+                self.resetInverseTiles()
+                pos = self.getTilePos(event.pos)
+                self.grid[pos].inverse = True
+
+    def resetInverseTiles(self):
+        for tile in self.grid:
+            tile.inverse = False
 
     def getTilePos(self, pos):
         localX = pos[0] - self.offset_x
