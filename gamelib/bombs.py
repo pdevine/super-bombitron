@@ -52,6 +52,7 @@ GAME_SET_BOMBS = 1
 GAME_ON = 2
 GAME_OVER = 3
 GAME_PAUSED = 4
+GAME_CLEANUP = 5
 
 TILE_WIDTH = tileImage.get_width()
 TILE_HEIGHT = tileImage.get_height()
@@ -82,30 +83,32 @@ class Tile:
         self.row = pos[1]
         self.hitBomb = False
 
+        self.currentTile = None
+
     def draw(self, offset_x, offset_y):
         if self.paused or \
            (not self.revealed and not self.flagged and \
            not self.inverse):
             if not self.blink:
-                tile = tileImage
+                self.currentTile = tileImage
             else:
-                tile = blinkImage
+                self.currentTile = blinkImage
         elif self.flagged:
-            tile = flagImage
+            self.currentTile = flagImage
         elif self.revealed:
             if self.bomb and self.hitBomb:
-                tile = bombHitImage
+                self.currentTile = bombHitImage
             elif self.bomb:
-                tile = bombImage
+                self.currentTile = bombImage
             else:
-                tile = bombImageDict.get(self.bombCount)
+                self.currentTile = bombImageDict.get(self.bombCount)
 
-            if not tile:
-                tile = flagImage
+            if not self.currentTile:
+                self.currentTile = flagImage
         elif self.inverse:
-            tile = tileInverseImage
+            self.currentTile = tileInverseImage
 
-        self.win.blit(tile, (self.column * TILE_WIDTH + offset_x,
+        self.win.blit(self.currentTile, (self.column * TILE_WIDTH + offset_x,
                       self.row * TILE_HEIGHT + offset_y))
 
 
@@ -395,8 +398,7 @@ class BombGrid(Grid):
                     self.togglePaused()
                     return
                 elif self.gridState == GAME_OVER:
-                    self.reset()
-                    self.explosionEffect.reset()
+                    self.gridState = GAME_CLEANUP
                 elif self.gridState == GAME_ON:
                     if pos == -1:
                         self.togglePaused()
@@ -431,10 +433,12 @@ class BombGrid(Grid):
                         self.grid[pos].flagged = True
 
 
-            if self.checkAllMinesCleared() and not self.gridState == GAME_OVER:
+            if self.checkAllMinesCleared() and \
+               self.gridState not in [GAME_OVER, GAME_CLEANUP]:
                 self.gridState = GAME_OVER
                 self.winner = True
                 self.timerOn = False
+                print "WINNER"
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
             button = event.button
@@ -510,6 +514,7 @@ class BombGridManager:
         blinkTime = level['autoblink']
 
         self.slideTiles = effects.SlideTileGrid(win, columns, rows)
+        self.fallingTiles = effects.FallingTileGrid(win, columns, rows)
         self.bombGrid = BombGrid(win, width=columns, height=rows,
                                  totalBombs=bombs, levelTime=levelTime,
                                  blinkTime=blinkTime)
@@ -527,13 +532,30 @@ class BombGridManager:
         if not self.slideTiles.finished:
             self.slideTiles.update(tick)
         else:
-            self.bombGrid.update(tick)
+            if self.bombGrid.gridState == GAME_CLEANUP:
+                if not self.fallingTiles.active:
+                    self.fallingTiles.copyGrid(self.bombGrid.grid)
+                    self.fallingTiles.active = True
+
+                self.fallingTiles.update(tick)
+                if self.fallingTiles.finished:
+                    # reset everything
+                    self.fallingTiles.reset()
+                    self.slideTiles.reset()
+                    self.bombGrid.explosionEffect.reset()
+                    self.bombGrid.reset()
+                
+            else:
+                self.bombGrid.update(tick)
 
     def draw(self):
         if not self.slideTiles.finished:
             self.slideTiles.draw()
         else:
-            self.bombGrid.draw(self.offsetX, self.offsetY)
+            if self.bombGrid.gridState == GAME_CLEANUP:
+                self.fallingTiles.draw()
+            else:
+                self.bombGrid.draw(self.offsetX, self.offsetY)
 
     def eventHandler(self, event):
         if self.slideTiles.finished:

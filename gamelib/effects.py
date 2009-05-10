@@ -227,9 +227,10 @@ class FallingTile:
         self.vec_y = 0
 
         self.finished = False
+        self.fallRate = randint(25, 55)
 
     def update(self, tick):
-        self.vec_y += tick / 1000.0 * 30
+        self.vec_y += tick / 1000.0 * self.fallRate
         self.rect.y += self.vec_y
 
         if self.rect.top > 480:
@@ -241,16 +242,28 @@ class FallingTile:
 
 class FallingTileGrid:
     def __init__(self, win, width, height):
+        self.win = win
+        self.width = width
+        self.height = height
+        self.reset()
+
+    def reset(self):
+        self.active = False
         self.finished = False
         self.tiles = []
 
-        offsetX = int(320 - width / 2.0 * TILE_WIDTH) + 10
-        offsetY = 480 - int(240 - height / 2.0 * TILE_HEIGHT)
+        offsetX = int(320 - self.width / 2.0 * TILE_WIDTH) + 10
+        offsetY = 480 - int(240 - self.height / 2.0 * TILE_HEIGHT)
 
-        for row in range(width):
-            for col in range(height):
+        for row in range(self.width):
+            for col in range(self.height):
                 self.tiles.append(
-                    FallingTile(win, (offsetX + row * 20, offsetY - col * 20)))
+                    FallingTile(self.win,
+                        (offsetX + row * 20, offsetY - col * 20)))
+
+    def copyGrid(self, grid):
+        for count, tile in enumerate(grid):
+            self.tiles[count].image = tile.currentTile.copy()
 
     def update(self, tick):
         # set the finished flag to true but turn it back off
@@ -316,17 +329,24 @@ class SlideTile:
     
 class SlideTileGrid:
     def __init__(self, win, width, height):
+        self.win = win
+        self.width = width
+        self.height = height
+
+        self.reset()
+
+    def reset(self):
         self.finished = False
         self.tiles = []
 
-        offsetX = int(320 - width / 2.0 * TILE_WIDTH) + 10
-        offsetY = 480 - int(240 - height / 2.0 * TILE_HEIGHT)
+        offsetX = int(320 - self.width / 2.0 * TILE_WIDTH) + 10
+        offsetY = 480 - int(240 - self.height / 2.0 * TILE_HEIGHT)
 
-        for row in range(width):
-            for col in range(height):
+        for row in range(self.width):
+            for col in range(self.height):
 
                 self.tiles.append(
-                    SlideTile(win, (offsetX + row * 20, 0 - col * 60),
+                    SlideTile(self.win, (offsetX + row * 20, 0 - col * 60),
                                    (offsetX + row * 20, offsetY - col * 20)))
 
     def update(self, tick):
@@ -403,9 +423,9 @@ if __name__ == '__main__':
 
         pygame.display.flip()
 
-    tiles = SlideTileGrid(win, 9, 9)
+    tiles = SlideTileGrid(win, 16, 16)
 
-    while False:
+    while not tiles.finished:
         tick = clock.tick(30)
 
         tiles.update(tick)
@@ -416,7 +436,7 @@ if __name__ == '__main__':
 
         pygame.display.flip()
 
-    tiles = FallingTileGrid(win, 9, 9)
+    tiles = FallingTileGrid(win, 16, 16)
 
     while True:
         tick = clock.tick(30)
