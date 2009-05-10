@@ -18,7 +18,7 @@ def main():
     title = TitleManager(win)
     bombGrid = None
 
-    currentLevel = 2
+    currentLevel = 0
 
     while True:
         for event in pygame.event.get():

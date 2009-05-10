@@ -215,7 +215,7 @@ class BombGrid(Grid):
         self.levelTime = levelTime
         self.bombEffect = \
             effects.Bomb(win, self.levelTime, pos=(40, 40), finalPos=(40, 40))
-        self.explosionEffect = effects.Explosion(win, (-10, 50))
+        self.explosionEffect = effects.Explosion(win, (200, 100))
 
         self.reset()
 

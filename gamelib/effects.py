@@ -117,6 +117,7 @@ class Bomb:
 
     def explode(self):
         self.rect.center = self.finalPos
+        self.sparks.pos = self.rect.topright
         self.rot = 0
         self.image = BOMB_IMG.copy()
 
@@ -215,6 +216,58 @@ class Explosion:
 def centerImage(image1, image2):
     return image1.get_width() / 2 - image2.get_width() / 2
 
+class FallingTile:
+    def __init__(self, win, pos):
+        self.win = win
+
+        self.image = TILE_IMG.copy()
+        self.rect = self.image.get_rect()
+        self.rect.center = pos
+
+        self.vec_y = 0
+
+        self.finished = False
+
+    def update(self, tick):
+        self.vec_y += tick / 1000.0 * 30
+        self.rect.y += self.vec_y
+
+        if self.rect.top > 480:
+            self.finished = True
+
+    def draw(self):
+        self.win.blit(self.image, self.rect.topleft)
+
+
+class FallingTileGrid:
+    def __init__(self, win, width, height):
+        self.finished = False
+        self.tiles = []
+
+        offsetX = int(320 - width / 2.0 * TILE_WIDTH) + 10
+        offsetY = 480 - int(240 - height / 2.0 * TILE_HEIGHT)
+
+        for row in range(width):
+            for col in range(height):
+                self.tiles.append(
+                    FallingTile(win, (offsetX + row * 20, offsetY - col * 20)))
+
+    def update(self, tick):
+        # set the finished flag to true but turn it back off
+        # if we're not done
+        self.finished = True
+
+        for tile in self.tiles:
+            tile.update(tick)
+
+            if not tile.finished:
+                self.finished = False
+
+    def draw(self):
+        for tile in self.tiles:
+            tile.draw()
+
+
 class SlideTile:
     def __init__(self, win, pos, finalPos):
         self.win = win
@@ -229,7 +282,6 @@ class SlideTile:
         self.velocityY = 0
 
         self.finalPos = finalPos
-        
 
     def update(self, tick):
         opp = self.finalPos[0] - self.rect.center[0]
@@ -353,6 +405,19 @@ if __name__ == '__main__':
 
     tiles = SlideTileGrid(win, 9, 9)
 
+    while False:
+        tick = clock.tick(30)
+
+        tiles.update(tick)
+
+        win.fill((200, 200, 255))
+
+        tiles.draw()
+
+        pygame.display.flip()
+
+    tiles = FallingTileGrid(win, 9, 9)
+
     while True:
         tick = clock.tick(30)
 
@@ -363,4 +428,5 @@ if __name__ == '__main__':
         tiles.draw()
 
         pygame.display.flip()
+
 

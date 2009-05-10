@@ -37,6 +37,7 @@ LEVELS = {
             'flags' : 40,
             'time' : 300,
             'description' : '',
+            'autoblink' : 5,
         },
         ],
     'difficult' : [
@@ -47,6 +48,7 @@ LEVELS = {
             'flags' : 99,
             'time' : 500,
             'description' : 'Just like the original',
+            'autoblink' : 5,
         },
         ],
     }
