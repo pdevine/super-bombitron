@@ -1,6 +1,5 @@
 import sys
 import pygame
-import levels
 
 from title import TitleManager
 from bombs import BombGridManager
@@ -38,9 +37,8 @@ def main():
         else:
             if not bombGrid:
                 difficulty = title.menu.choices[title.menu.choice]
-                level = levels.LEVELS[difficulty][currentLevel]
 
-                bombGrid = BombGridManager(win, level)
+                bombGrid = BombGridManager(win, difficulty, currentLevel)
                 
             bombGrid.update(tick)
 

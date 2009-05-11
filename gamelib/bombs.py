@@ -37,6 +37,7 @@ import sys
 import os.path
 
 import effects
+import levels
 
 from util import dataName
 
@@ -438,7 +439,6 @@ class BombGrid(Grid):
                 self.gridState = GAME_OVER
                 self.winner = True
                 self.timerOn = False
-                print "WINNER"
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
             button = event.button
@@ -502,7 +502,19 @@ class BombGrid(Grid):
         return self.width * row + column
 
 class BombGridManager:
-    def __init__(self, win, level):
+    def __init__(self, win, difficulty, levelNum=0):
+        self.win = win
+        self.difficulty = difficulty
+        self.levelNum = levelNum
+        # XXX - fixme
+
+        self.loadLevel(difficulty, levelNum)
+
+        self.bombGrid.offsetX = self.offsetX
+        self.bombGrid.offsetY = self.offsetY
+
+    def loadLevel(self, difficulty, levelNum):
+        level = levels.LEVELS[difficulty][levelNum]
 
         columns = level['columns']
         rows = level['rows']
@@ -513,9 +525,9 @@ class BombGridManager:
         levelTime = level['time']
         blinkTime = level['autoblink']
 
-        self.slideTiles = effects.SlideTileGrid(win, columns, rows)
-        self.fallingTiles = effects.FallingTileGrid(win, columns, rows)
-        self.bombGrid = BombGrid(win, width=columns, height=rows,
+        self.slideTiles = effects.SlideTileGrid(self.win, columns, rows)
+        self.fallingTiles = effects.FallingTileGrid(self.win, columns, rows)
+        self.bombGrid = BombGrid(self.win, width=columns, height=rows,
                                  totalBombs=bombs, levelTime=levelTime,
                                  blinkTime=blinkTime)
 
@@ -523,10 +535,6 @@ class BombGridManager:
         self.offsetY = 480 - int(240 - rows / 2.0 * TILE_HEIGHT) - \
             rows * TILE_HEIGHT
 
-        # XXX - fixme
-
-        self.bombGrid.offsetX = self.offsetX
-        self.bombGrid.offsetY = self.offsetY
 
     def update(self, tick):
         if not self.slideTiles.finished:
@@ -539,6 +547,11 @@ class BombGridManager:
 
                 self.fallingTiles.update(tick)
                 if self.fallingTiles.finished:
+
+                    if self.bombGrid.winner:    
+                        self.levelNum += 1
+                        self.loadLevel(self.difficulty, self.levelNum)
+
                     # reset everything
                     self.fallingTiles.reset()
                     self.slideTiles.reset()
