@@ -508,6 +508,9 @@ class BombGridManager:
         self.levelNum = levelNum
         # XXX - fixme
 
+        self.awesomeFt = pygame.font.Font(dataName('badabb__.ttf'), 90)
+        self.awesomeSmallFt = pygame.font.Font(dataName('badabb__.ttf'), 55)
+
         self.loadLevel(difficulty, levelNum)
 
         self.bombGrid.offsetX = self.offsetX
@@ -525,6 +528,8 @@ class BombGridManager:
         levelTime = level['time']
         blinkTime = level['autoblink']
 
+        self.levelDescText = level['description']
+
         self.slideTiles = effects.SlideTileGrid(self.win, columns, rows)
         self.fallingTiles = effects.FallingTileGrid(self.win, columns, rows)
         self.bombGrid = BombGrid(self.win, width=columns, height=rows,
@@ -534,6 +539,8 @@ class BombGridManager:
         self.offsetX = int(320 - columns / 2.0 * TILE_WIDTH)
         self.offsetY = 480 - int(240 - rows / 2.0 * TILE_HEIGHT) - \
             rows * TILE_HEIGHT
+
+        self.setLevelText()
 
 
     def update(self, tick):
@@ -561,9 +568,37 @@ class BombGridManager:
             else:
                 self.bombGrid.update(tick)
 
+    def setLevelText(self):
+        levelText = "Level %s" % (self.levelNum + 1)
+
+        self.levelImg = self.awesomeFt.render(levelText, True, (255, 0, 0))
+        self.levelBgImg = self.awesomeFt.render(levelText, True, (0, 0, 0))
+
+        self.levelDescImg = \
+            self.awesomeSmallFt.render(self.levelDescText, True, (0, 255, 0))
+        self.levelDescBgImg = \
+            self.awesomeSmallFt.render(self.levelDescText, True, (0, 0, 0))
+
     def draw(self):
         if not self.slideTiles.finished:
             self.slideTiles.draw()
+
+            levelRect = self.levelImg.get_rect()
+            levelRect.center = (320, 240)
+
+            self.win.blit(self.levelBgImg, (levelRect.topleft[0] - 5,
+                                            levelRect.topleft[1] - 55))
+            self.win.blit(self.levelImg, (levelRect.topleft[0],
+                                          levelRect.topleft[1] - 50))
+
+            levelDescRect = self.levelDescImg.get_rect()
+            levelDescRect.center = (320, 240)
+
+            self.win.blit(self.levelDescBgImg, (levelDescRect.topleft[0] - 5,
+                                                levelDescRect.topleft[1] + 45))
+            self.win.blit(self.levelDescImg, (levelDescRect.topleft[0],
+                                          levelDescRect.topleft[1] + 50))
+
         else:
             if self.bombGrid.gridState == GAME_CLEANUP:
                 self.fallingTiles.draw()
