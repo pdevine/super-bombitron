@@ -207,7 +207,7 @@ class Grid:
 
 class BombGrid(Grid):
     def __init__(self, win, width=10, height=10, totalBombs=9, levelTime=40,
-                 blinkTime=-1):
+                 totalFlags=9, blinkTime=-1):
         self.win = win
         self.active = False
         self.autoBlink = blinkTime
@@ -215,6 +215,7 @@ class BombGrid(Grid):
         self.width = width
         self.height = height
         self.totalBombs = totalBombs
+        self.totalFlags = totalFlags
 
         self.levelTime = levelTime
         self.bombEffect = \
@@ -243,7 +244,7 @@ class BombGrid(Grid):
     def reset(self):
         Grid.__init__(self, width=self.width, height=self.height)
         self.gridState = GAME_SET_BOMBS
-        self.flags = self.totalBombs
+        self.flags = self.totalFlags
         self.winner = False
         self.timer = 0
         self.bombEffect.totalTime = self.levelTime
@@ -280,7 +281,7 @@ class BombGrid(Grid):
         self.createBombCountGrid()
 
         self.gridState = GAME_ON
-        self.flags = self.totalBombs
+        #self.flags = self.totalFlags
 
     def togglePaused(self):
         for tile in self.grid:
@@ -473,10 +474,16 @@ class BombGrid(Grid):
 
 
     def checkAllMinesCleared(self):
+        # the tile.bomb or tile.flagged clause is the main
+        # distinction between bombitron and minesweeper
         for tile in self.grid:
-            if not tile.revealed and \
-               not (tile.bomb and tile.flagged):
+            #if not tile.revealed and \
+            #   not (tile.bomb or tile.flagged):
+            #    return False
+
+            if not tile.revealed and not tile.flagged:
                 return False
+
         return True
 
     def checkAllMinesCovered(self):
@@ -517,7 +524,7 @@ class BombGridManager:
         self.bombGrid.offsetY = self.offsetY
 
     def loadLevel(self, difficulty, levelNum):
-        level = levels.LEVELS[difficulty][levelNum]
+        level = levels.LEVELS[levelNum]
 
         columns = level['columns']
         rows = level['rows']
@@ -534,7 +541,7 @@ class BombGridManager:
         self.fallingTiles = effects.FallingTileGrid(self.win, columns, rows)
         self.bombGrid = BombGrid(self.win, width=columns, height=rows,
                                  totalBombs=bombs, levelTime=levelTime,
-                                 blinkTime=blinkTime)
+                                 totalFlags=flags, blinkTime=blinkTime)
 
         self.offsetX = int(320 - columns / 2.0 * TILE_WIDTH)
         self.offsetY = 480 - int(240 - rows / 2.0 * TILE_HEIGHT) - \
@@ -586,16 +593,16 @@ class BombGridManager:
             levelRect = self.levelImg.get_rect()
             levelRect.center = (320, 240)
 
-            self.win.blit(self.levelBgImg, (levelRect.topleft[0] - 5,
-                                            levelRect.topleft[1] - 55))
+            self.win.blit(self.levelBgImg, (levelRect.topleft[0] + 5,
+                                            levelRect.topleft[1] - 45))
             self.win.blit(self.levelImg, (levelRect.topleft[0],
                                           levelRect.topleft[1] - 50))
 
             levelDescRect = self.levelDescImg.get_rect()
             levelDescRect.center = (320, 240)
 
-            self.win.blit(self.levelDescBgImg, (levelDescRect.topleft[0] - 5,
-                                                levelDescRect.topleft[1] + 45))
+            self.win.blit(self.levelDescBgImg, (levelDescRect.topleft[0] + 5,
+                                                levelDescRect.topleft[1] + 55))
             self.win.blit(self.levelDescImg, (levelDescRect.topleft[0],
                                           levelDescRect.topleft[1] + 50))
 

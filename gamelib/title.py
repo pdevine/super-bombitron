@@ -125,11 +125,10 @@ class Title:
 class Menu:
     def __init__(self, win):
         self.win = win
-        self.menuft = pygame.font.Font(dataName('Blox2.ttf'), 50)
-        self.selectedft = pygame.font.Font(dataName('Blox2.ttf'), 70)
+        self.awesomeft = pygame.font.Font(dataName('badabb__.ttf'), 70)
 
         self.choice = 0
-        self.choices = ['easy', 'intermediate', 'difficult']
+        self.choices = ['Play!', 'Level']
 
         self.horizonPos = 0
 
@@ -148,9 +147,10 @@ class Menu:
 
         for count, item in enumerate(self.choices):
             if count == self.choice:
-                text = self.selectedft.render(item.upper(), True, (0, 0, 0))
+                text = self.awesomeft.render(item.upper(), True, (255, 0, 0))
             else:
-                text = self.menuft.render(item, True, (0, 0, 0))
+                text = self.awesomeft.render(item, True, (0, 0, 0))
+                textBg = self.awesomeft.render(item, True, (0, 0, 0))
 
             if count == 1:
                 x = self.horizonPos + 320 - text.get_width() / 2

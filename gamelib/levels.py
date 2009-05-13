@@ -1,7 +1,6 @@
 
-LEVELS = {
-    'easy' : [
-        {
+LEVELS = [
+    {
             'columns' : 9,
             'rows' : 9,
             'bombs' : 10,
@@ -9,8 +8,8 @@ LEVELS = {
             'time' : 160,
             'description' : 'Easy as pie',
             'autoblink' : 5,
-        },
-        {
+    },
+    {
             'columns' : 9,
             'rows' : 9,
             'bombs' : 10,
@@ -18,28 +17,35 @@ LEVELS = {
             'time' : 80,
             'description' : 'Can you do it faster?',
             'autoblink' : 5,
-        },
-        {
+    },
+    {
             'columns' : 9,
             'rows' : 9,
-            'bombs' : 15,
-            'flags' : 15,
+            'bombs' : 10,
+            'flags' : 12,
             'time' : 100,
-            'description' : 'More bombs!',
+            'description' : 'Use flags to cover bombs',
             'autoblink' : 5,
-        },
-        {
-            'columns' : 10,
-            'rows' : 10,
-            'bombs' : 16,
-            'flags' : 16,
+    },
+    {
+            'columns' : 9,
+            'rows' : 9,
+            'bombs' : 10,
+            'flags' : 15,
+            'time' : 45,
+            'description' : 'Speed round!',
+            'autoblink' : 5,
+    },
+    {
+            'columns' : 16,
+            'rows' : 16,
+            'bombs' : 20,
+            'flags' : 25,
             'time' : 80,
             'description' : "Let's increase the board size",
             'autoblink' : 5,
-        },
-        ],
-    'intermediate' : [
-        {
+    },
+    {
             'columns' : 16,
             'rows' : 16,
             'bombs' : 40,
@@ -47,10 +53,8 @@ LEVELS = {
             'time' : 300,
             'description' : '',
             'autoblink' : 5,
-        },
-        ],
-    'difficult' : [
-        {
+    },
+    {
             'columns' : 30,
             'rows' : 16,
             'bombs' : 99,
@@ -58,6 +62,5 @@ LEVELS = {
             'time' : 500,
             'description' : 'Just like the original',
             'autoblink' : 5,
-        },
-        ],
-    }
+    },
+]
