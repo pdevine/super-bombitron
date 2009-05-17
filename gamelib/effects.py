@@ -12,35 +12,32 @@ TILE_IMG = pygame.image.load(dataName('tile.png'))
 TILE_WIDTH = 20
 TILE_HEIGHT = 20
 
-class SpinTile:
-    def __init__(self, win):
+pygame.font.init()
+AWESOME_FT = pygame.font.Font(dataName('badabb__.ttf'), 30)
+
+class ImageCount:
+    def __init__(self, win, text, pos):
         self.win = win
-
-        self.rot = 0
-        self.rotSpeed = random.choice([3, -3])
-
-        self.pos = (random.randint(20, 620), 0)
-        self.image = TILE_IMG.copy()
-
-        self.rect = TILE_IMG.get_rect()
-        self.rect.center = self.pos
-
-        self.dead = False
-
-    def update(self, tick):
-        center = self.rect.center
-        self.image = pygame.transform.rotate(TILE_IMG, self.rot)
+        self.image = AWESOME_FT.render(text, True, (0, 0, 0))
         self.rect = self.image.get_rect()
-        self.rect.center = center
+        self.rect.center = pos
 
-        self.rot += self.rotSpeed
-        self.rect.y += 4
-
-        if self.rect.top > 640:
-            self.dead = True
-    
-    def draw(self):
+    def draw(self, count=0):
         self.win.blit(self.image, self.rect.topleft)
+
+        text = AWESOME_FT.render(str(count), True, (0, 0, 0))
+        countRect = text.get_rect()
+        countRect.center = self.rect.center
+        self.win.blit(text, (countRect.topleft[0], countRect.topleft[1]+25))
+
+class FlagCount(ImageCount):
+    def __init__(self, win):
+        ImageCount.__init__(self, win, 'Flags', (470, 20))
+
+class BombCount(ImageCount):
+    def __init__(self, win):
+        ImageCount.__init__(self, win, 'Bombs', (550, 20))
+
 
 class Spark:
     lifetimeRange = (100, 350)
@@ -340,7 +337,7 @@ class SlideTileGrid:
         self.tiles = []
 
         offsetX = int(320 - self.width / 2.0 * TILE_WIDTH) + 10
-        offsetY = 480 - int(240 - self.height / 2.0 * TILE_HEIGHT)
+        offsetY = 480 - int(240 - self.height / 2.0 * TILE_HEIGHT) + 20
 
         for row in range(self.width):
             for col in range(self.height):
@@ -395,6 +392,66 @@ class SpinTile:
         self.win.blit(self.image, self.rect.topleft)
 
 
+class Credits:
+    def __init__(self, win):
+        self.win = win
+        self.y = 500
+
+        credits = [
+            ('Concept', 'Patrick Devine'),
+            ('Programming', 'Patrick Devine'),
+            ('Artwork', 'Patrick Devine'),
+            ('Production', 'Patrick Devine'),
+            ('Fonts', 'urbanfonts.com'),
+            ('Play testing', 'Shandy Brown'),
+            ('Moral Support', 'Linda Jiang, Saoirse Devine'),
+            ('Tools', 'pygame, python, inkscape, gimp'),
+        ]
+
+        secondCredits = [
+            'A Patrick Devine Production',
+            'copyright 2009',
+            'bombitron.com',
+        ]
+
+        self.creditList = []
+
+        for count, entry in enumerate(credits):
+            work, person = entry
+            credit = \
+                (AWESOME_FT.render(work, True, (255, 0, 0)), count * 150)
+            self.creditList.append(credit)
+
+            credit = \
+                (AWESOME_FT.render(person, True, (0, 0, 0)), count * 150 + 30)
+            self.creditList.append(credit)
+
+        lastPlace = self.creditList[-1][1]
+
+        for count, entry in enumerate(secondCredits):
+            credit = \
+                (AWESOME_FT.render(entry, True, (255, 0, 0)),
+                 (count + 2) * 50 + lastPlace)
+
+            self.creditList.append(credit)
+
+        self.finished = False
+
+    def update(self, tick):
+        self.y -= 2
+        # look at the last credit's position and see if it's scrolled
+        # off the screen
+
+        if self.y + self.creditList[-1][1] + 30 < 0:
+            self.finished = True
+            
+
+    def draw(self):
+        for credit in self.creditList:
+            text, pos = credit
+            self.win.blit(text, (100, self.y + pos))
+
+
 if __name__ == '__main__':
     import pygame
     pygame.init()
@@ -422,6 +479,20 @@ if __name__ == '__main__':
         explosion.draw()
 
         pygame.display.flip()
+
+    credits = Credits(win)
+
+    while credits.finished == False:
+        tick = clock.tick(30)
+
+        credits.update(tick)
+
+        win.fill((200, 200, 255))
+
+        credits.draw()
+
+        pygame.display.flip()
+
 
     tiles = SlideTileGrid(win, 16, 16)
 

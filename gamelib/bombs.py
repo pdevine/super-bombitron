@@ -219,7 +219,7 @@ class BombGrid(Grid):
 
         self.levelTime = levelTime
         self.bombEffect = \
-            effects.Bomb(win, self.levelTime, pos=(40, 40), finalPos=(40, 40))
+            effects.Bomb(win, self.levelTime, pos=(40, 50), finalPos=(40, 50))
         self.explosionEffect = effects.Explosion(win, (200, 100))
 
         self.reset()
@@ -229,7 +229,7 @@ class BombGrid(Grid):
 
         self.offset_x = int(self.win.get_width() / 2 - width / 2.0 * TILE_WIDTH)
         self.offset_y = self.win.get_height() - int(240 - height / 2.0 * 
-                        TILE_HEIGHT) - (height * TILE_HEIGHT)
+                        TILE_HEIGHT) - (height * TILE_HEIGHT) + 20
 
         self.timerOn = False
         self.timer = 0
@@ -240,6 +240,9 @@ class BombGrid(Grid):
         self.blinkTime = 300
         self.blinkCount = 300
         self.blinkState = False
+
+        self.flagCount = effects.FlagCount(self.win)
+        self.bombCount = effects.BombCount(self.win)
 
     def reset(self):
         Grid.__init__(self, width=self.width, height=self.height)
@@ -294,12 +297,15 @@ class BombGrid(Grid):
 
     def draw(self, offset_x=0, offset_y=0):
         for tile in self.grid:
-            tile.draw(offset_x, offset_y)
+            tile.draw(offset_x, offset_y+20)
 
-        flagCountText = "%d/%d" % (self.flags, self.totalBombs)
-        flagCountImg = self.ft.render(flagCountText, True, (0, 0, 0))
-        self.win.blit(flagCountImg,
-            (self.win.get_width() - flagCountImg.get_width() - EDGE_WIDTH, 20))
+        self.flagCount.draw(self.flags)
+        self.bombCount.draw(self.totalBombs)
+
+        #flagCountText = "%d/%d" % (self.flags, self.totalBombs)
+        #flagCountImg = self.ft.render(flagCountText, True, (0, 0, 0))
+        #self.win.blit(flagCountImg,
+        #    (self.win.get_width() - flagCountImg.get_width() - EDGE_WIDTH, 20))
 
 
         if (self.gridState == GAME_OVER and self.winner) or \
