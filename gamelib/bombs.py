@@ -515,21 +515,20 @@ class BombGrid(Grid):
         return self.width * row + column
 
 class BombGridManager:
-    def __init__(self, win, difficulty, levelNum=0):
+    def __init__(self, win, levelNum=0):
         self.win = win
-        self.difficulty = difficulty
+        self.finished = False
         self.levelNum = levelNum
-        # XXX - fixme
 
         self.awesomeFt = pygame.font.Font(dataName('badabb__.ttf'), 90)
         self.awesomeSmallFt = pygame.font.Font(dataName('badabb__.ttf'), 55)
 
-        self.loadLevel(difficulty, levelNum)
+        self.loadLevel(levelNum)
 
         self.bombGrid.offsetX = self.offsetX
         self.bombGrid.offsetY = self.offsetY
 
-    def loadLevel(self, difficulty, levelNum):
+    def loadLevel(self, levelNum):
         level = levels.LEVELS[levelNum]
 
         columns = level['columns']
@@ -570,7 +569,10 @@ class BombGridManager:
 
                     if self.bombGrid.winner:    
                         self.levelNum += 1
-                        self.loadLevel(self.difficulty, self.levelNum)
+                        if self.levelNum >= len(levels.LEVELS):
+                            self.finished = True
+                            return
+                        self.loadLevel(self.levelNum)
 
                     # reset everything
                     self.fallingTiles.reset()

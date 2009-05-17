@@ -426,12 +426,12 @@ class Credits:
                 (AWESOME_FT.render(person, True, (0, 0, 0)), count * 150 + 30)
             self.creditList.append(credit)
 
-        lastPlace = self.creditList[-1][1]
+        lastPlace = self.creditList[-1][1] + 100
 
         for count, entry in enumerate(secondCredits):
             credit = \
                 (AWESOME_FT.render(entry, True, (255, 0, 0)),
-                 (count + 2) * 50 + lastPlace)
+                 (count + 2) * 30 + lastPlace)
 
             self.creditList.append(credit)
 

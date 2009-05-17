@@ -179,10 +179,14 @@ class Menu:
 class TitleManager:
     def __init__(self, win):
         self.active = True
+        self.win = win
 
-        self.titleBg = TitleBackground(win)
-        self.title = Title(win)
-        self.menu = Menu(win)
+        self.reset()
+
+    def reset(self):
+        self.titleBg = TitleBackground(self.win)
+        self.title = Title(self.win)
+        self.menu = Menu(self.win)
 
     def update(self, tick):
         self.titleBg.update(tick)
