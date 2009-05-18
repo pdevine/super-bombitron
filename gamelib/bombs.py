@@ -452,6 +452,8 @@ class BombGrid(Grid):
 
             if button in [1, 3]:
                 pos = self.getTilePos(event.pos)
+                if pos == -1:
+                    return
                 self.grid[pos].inverse = True
 
         elif event.type == pygame.MOUSEMOTION:

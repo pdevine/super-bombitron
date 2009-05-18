@@ -40,7 +40,7 @@ class BombCount(ImageCount):
 
 
 class Spark:
-    lifetimeRange = (100, 350)
+    lifetimeRange = (150, 450)
     colors = [(255, 0, 0), (255, 255, 100), (255, 255, 0), (10, 10, 10)]
 
     def __init__(self, win, pos):
@@ -101,8 +101,6 @@ class Bomb:
 
         self.totalTime = totalTime
 
-        self.ft = pygame.font.SysFont('Arial', 40)
-
         self.startRot = rot
         self.rot = rot
 
@@ -153,7 +151,7 @@ class Bomb:
             color = (255, 0, 0)
 
         if self.totalTime >= 0:
-            timerText = self.ft.render("%d" % self.totalTime, True, color)
+            timerText = AWESOME_FT.render("%d" % self.totalTime, True, color)
             self.win.blit(timerText,
                 (centerImage(self.image, timerText) + self.rect.x,
                  self.rect.y+27))
@@ -302,8 +300,6 @@ class SlideTile:
         self.velocityX = 8 * sin(rad)
         self.velocityY = 15 * cos(rad)
 
-        #print "x = %f y=%f" % (self.velocityX, self.velocityY)
-
         distance = sqrt(pow(self.finalPos[0] - self.rect.center[0], 2) + \
                         pow(self.finalPos[1] - self.rect.center[1], 2))
 
@@ -315,7 +311,6 @@ class SlideTile:
             self.velocityX = 0
             self.velocityY = 0
             self.rect.bottom = self.finalPos[1]
-            #self.rect.center = self.finalPos
             self.finished = True
 
         self.rect.x += self.velocityX
