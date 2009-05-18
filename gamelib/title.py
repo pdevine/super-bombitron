@@ -5,6 +5,7 @@ import random
 
 import effects
 import bombs
+import levels
 
 from bombs import dataName
 
@@ -122,13 +123,18 @@ class Title:
             self.bomb.draw()
         self.explosion.draw()
 
+START_CHOICES = ['Play!', 'Level']
+RESUME_CHOICES = ['Resume', 'Level', 'New Game!']
+
 class Menu:
     def __init__(self, win):
         self.win = win
         self.awesomeft = pygame.font.Font(dataName('badabb__.ttf'), 70)
+        self.currentLevel = 0
 
         self.choice = 0
-        self.choices = ['Play!', 'Level']
+        self.choices = START_CHOICES
+        self.startChoices = True
 
         self.horizonPos = 0
 
@@ -143,7 +149,14 @@ class Menu:
                 self.setChoices()
 
     def setChoices(self):
+        if self.startChoices:
+            self.choices = START_CHOICES
+        else:
+            self.choices = RESUME_CHOICES
+
+        print self.choices
         self.imageChoices = []
+        self.choices[1] = 'Level %d' % (self.currentLevel + 1)
 
         for count, item in enumerate(self.choices):
             if count == self.choice:
@@ -186,7 +199,9 @@ class TitleManager:
     def reset(self):
         self.titleBg = TitleBackground(self.win)
         self.title = Title(self.win)
-        self.menu = Menu(self.win)
+        if not hasattr(self, 'menu'):
+            self.menu = Menu(self.win)
+        print "reset"
 
     def update(self, tick):
         self.titleBg.update(tick)
@@ -211,10 +226,19 @@ class TitleManager:
                 currentChoice = self.menu.choice
                 self.menu.choice = -1
                 self.menu.imageCollide(event.pos)
-                if self.menu.choice > -1:
+                if self.menu.choice == 0:
                     self.titleBg.toggleActive()
                     self.title.toggleActive()
                     self.menu.active = not self.menu.active
+                elif self.menu.choice == 1:
+                    if event.button == 1:
+                        self.menu.currentLevel += 1
+                        if self.menu.currentLevel >= len(levels.LEVELS):
+                            self.menu.currentLevel = 0
+                    elif event.button == 3:
+                        self.menu.currentLevel -= 1
+                        if self.menu.currentLevel < 0:
+                            self.menu.currentLevel = len(levels.LEVELS) - 1
                 self.menu.choice = currentChoice
                 self.menu.setChoices()
 

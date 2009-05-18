@@ -21,8 +21,8 @@ LEVELS = [
     {
             'columns' : 9,
             'rows' : 9,
-            'bombs' : 10,
-            'flags' : 15,
+            'bombs' : 13,
+            'flags' : 16,
             'time' : 60,
             'description' : 'Use flags to cover bombs',
             'autoblink' : 5,

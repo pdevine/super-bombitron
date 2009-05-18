@@ -4,6 +4,7 @@ import pygame
 from title import TitleManager
 from bombs import BombGridManager
 from effects import Credits
+import title
 
 SCREEN_WIDTH = 640
 SCREEN_HEIGHT = 480
@@ -15,45 +16,52 @@ def main():
 
     clock = pygame.time.Clock()
 
-    title = TitleManager(win)
+    menu = TitleManager(win)
     credits = Credits(win)
     bombGrid = None
-
-    currentLevel = 0
 
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
+            elif event.type == pygame.KEYUP and event.key == pygame.K_ESCAPE:
+                if menu.active:
+                    sys.exit()
+                else:
+                    menu.menu.startChoices = False
+                    menu.menu.setChoices()
+                    menu.active = True
+                    menu.reset()
+                print "key pressed"
 
-            if title.active:
-                title.eventHandler(event)
+            if menu.active:
+                menu.eventHandler(event)
             else:
                 if bombGrid and not bombGrid.finished:
                     bombGrid.eventHandler(event)
 
         tick = clock.tick(30)
 
-        if title.active:
-            title.update(tick)
+        if menu.active:
+            menu.update(tick)
         else:
             if not bombGrid:
-                bombGrid = BombGridManager(win, currentLevel)
+                bombGrid = BombGridManager(win, menu.menu.currentLevel)
                 
             bombGrid.update(tick)
 
             if bombGrid.finished:
                 credits.update(tick)
                 if credits.finished:
-                    title.active = True
-                    title.reset()
+                    menu.active = True
+                    menu.reset()
                     bombGrid = None
                 
 
         win.fill((200, 200, 255))
 
-        if title.active:
-            title.draw()
+        if menu.active:
+            menu.draw()
         else:
             if bombGrid and not bombGrid.finished:
                 bombGrid.draw()
