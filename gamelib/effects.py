@@ -250,8 +250,8 @@ class FallingTileGrid:
         offsetX = int(320 - self.width / 2.0 * TILE_WIDTH) + 10
         offsetY = 480 - int(240 - self.height / 2.0 * TILE_HEIGHT)
 
-        for row in range(self.width):
-            for col in range(self.height):
+        for col in range(self.height-1, -1, -1):
+            for row in range(self.width):
                 self.tiles.append(
                     FallingTile(self.win,
                         (offsetX + row * 20, offsetY - col * 20)))
