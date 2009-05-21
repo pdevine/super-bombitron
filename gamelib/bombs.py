@@ -42,7 +42,6 @@ import levels
 from util import dataName
 
 tileImage = pygame.image.load(dataName('tile.png'))
-blinkImage = pygame.image.load(dataName('tile-red.png'))
 tileInverseImage = pygame.image.load(dataName('tile-inverse.png'))
 bombImage = pygame.image.load(dataName('bomb.png'))
 bombHitImage = pygame.image.load(dataName('bomb-inverse.png'))
@@ -62,6 +61,13 @@ EDGE_WIDTH = 24
 EDGE_TOP_HEIGHT = 80
 EDGE_BOTTOM_HEIGHT = 24
 
+blinkTile = pygame.image.load(dataName('tile-fade.png'))
+BLINK_SURFACES = []
+
+for count in range(5):
+    rect = pygame.Rect(count * 20, 0, 20, 20)
+    BLINK_SURFACES.append(blinkTile.subsurface(rect))
+
 bombImageDict = {}
 
 for x in range(0, 8):
@@ -78,13 +84,31 @@ class Tile:
         self.flagged = False
         self.paused = False
         self.inverse = False
+
         self.blink = False
+        self.blinkDir = 1
+        self.blinkFadeTime = 100
+        self.blinkCount = 0
 
         self.column = pos[0]
         self.row = pos[1]
         self.hitBomb = False
 
         self.currentTile = None
+
+    def update(self, tick):
+        # only gets updated when the blink counter is on
+        if self.blink:
+            self.blinkFadeTime -= tick
+            if self.blinkFadeTime <= 0:
+                self.blinkFadeTime = 100
+                self.blinkCount += self.blinkDir
+                if self.blinkCount >= len(BLINK_SURFACES):
+                    self.blinkDir = -1
+                    self.blinkCount -= 2
+                elif self.blinkCount <= 0:
+                    self.blinkDir = 1
+                    self.blinkCount = 0
 
     def draw(self, offset_x, offset_y):
         if self.paused or \
@@ -93,7 +117,7 @@ class Tile:
             if not self.blink:
                 self.currentTile = tileImage
             else:
-                self.currentTile = blinkImage
+                self.currentTile = BLINK_SURFACES[self.blinkCount]
         elif self.flagged:
             self.currentTile = flagImage
         elif self.revealed:
@@ -237,10 +261,6 @@ class BombGrid(Grid):
         self.ft = pygame.font.SysFont('Arial', 40)
         self.awesomeFt = pygame.font.Font(dataName('badabb__.ttf'), 90)
 
-        self.blinkTime = 300
-        self.blinkCount = 300
-        self.blinkState = False
-
         self.flagCount = effects.FlagCount(self.win)
         self.bombCount = effects.BombCount(self.win)
 
@@ -260,11 +280,10 @@ class BombGrid(Grid):
             self.bombEffect.update(tick)
 
             if self.bombEffect.totalTime <= self.autoBlink:
-                self.blinkCount -= tick
-                if self.blinkCount <= 0:
-                    self.blinkState = not self.blinkState
-                    self.blinkBombs(self.blinkState)
-                    self.blinkCount = self.blinkTime
+                for tile in self.grid:
+                    if tile.bomb:
+                        tile.blink = True
+                    tile.update(tick)
 
             if self.bombEffect.totalTime <= 0:
                 self.revealAll()
@@ -504,11 +523,6 @@ class BombGrid(Grid):
         for tile in self.grid:
             if not tile.flagged and tile.bomb:
                 tile.revealed = True
-
-    def blinkBombs(self, blinkState):
-        for tile in self.grid:
-            if not tile.flagged and not tile.revealed and tile.bomb:
-                tile.blink = blinkState
 
     def getTileNumber(self, x, y):
         column = x / TILE_WIDTH

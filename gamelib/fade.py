@@ -34,6 +34,7 @@ class Tile:
 
     def draw(self):
         self.win.blit(self.surfaces[self.count], (self.x, self.y))
+
 def main():
 
     clock = pygame.time.Clock()
