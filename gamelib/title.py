@@ -126,68 +126,47 @@ class Title:
 START_CHOICES = ['Play!', 'Level']
 RESUME_CHOICES = ['Resume', 'Level', 'New Game!']
 
+class LevelSelect:
+    def __init__(self, win):
+        self.win = win
+        self.awesomeft = pygame.font.Font(dataName('badabb__.ttf'), 70)
+        self.backArrow = pygame.image.load(dataName('back-arrow.png'))
+        self.forwardArrow = pygame.image.load(dataName('forward-arrow.png'))
+
+        self.currentLevel = 0
+
+        self.setText()
+
+    def setText(self):
+        self.text = self.awesomeft.render('Level', True, (0, 0, 0))
+        self.levelText = self.awesomeft.render(
+                            str(self.currentLevel + 1), True, (0, 0, 0))
+
+    def draw(self):
+        self.win.blit(self.text, (200, 200))
+        self.win.blit(self.backArrow, (350, 215))
+        self.win.blit(self.forwardArrow, (450, 215))
+        self.win.blit(self.levelText, (405, 200))
+        pass
+
 class Menu:
     def __init__(self, win):
         self.win = win
         self.awesomeft = pygame.font.Font(dataName('badabb__.ttf'), 70)
         self.currentLevel = 0
 
-        self.choice = 0
-        self.choices = START_CHOICES
-        self.startChoices = True
-
-        self.horizonPos = 0
-
         self.active = True
         self.finished = False
-        self.setChoices()
 
-    def imageCollide(self, pos):
-        for count, (image, rect) in enumerate(self.imageChoices):
-            if rect.collidepoint(pos):
-                self.choice = count
-                self.setChoices()
-
-    def setChoices(self):
-        if self.startChoices:
-            self.choices = START_CHOICES
-        else:
-            self.choices = RESUME_CHOICES
-
-        print self.choices
-        self.imageChoices = []
-        self.choices[1] = 'Level %d' % (self.currentLevel + 1)
-
-        for count, item in enumerate(self.choices):
-            if count == self.choice:
-                text = self.awesomeft.render(item.upper(), True, (255, 0, 0))
-            else:
-                text = self.awesomeft.render(item, True, (0, 0, 0))
-                textBg = self.awesomeft.render(item, True, (0, 0, 0))
-
-            if count == 1:
-                x = self.horizonPos + 320 - text.get_width() / 2
-            else:
-                x = 320 - self.horizonPos - text.get_width() / 2
-
-            rect = text.get_rect()
-            rect.topleft = (x, count * 80 + 200)
-
-            self.imageChoices.append((text, rect))
+        self.levelSelect = LevelSelect(self.win)
 
     def update(self, tick):
-        if not self.active:
-            if self.horizonPos < 600:
-                self.horizonPos += 20
-        else:
-            self.horizonPos = 0
+        pass
 
     def draw(self):
-        for count, (image, rect) in enumerate(self.imageChoices):
-            if count == 1:
-                self.win.blit(image, (rect.x - self.horizonPos, rect.y))
-            else:
-                self.win.blit(image, (rect.x + self.horizonPos, rect.y))
+        self.levelSelect.draw()
+        pass
+
 
 class TitleManager:
     def __init__(self, win):
@@ -218,29 +197,32 @@ class TitleManager:
 
     def eventHandler(self, event):
         if event.type == pygame.MOUSEMOTION:
-            if self.menu.active:
-                self.menu.imageCollide(event.pos)
+            pass
+#            if self.menu.active:
+#                print "collide"
+#                self.menu.imageCollide(event.pos)
                 
         elif event.type == pygame.MOUSEBUTTONUP:
-            if self.menu.active:
-                currentChoice = self.menu.choice
-                self.menu.choice = -1
-                self.menu.imageCollide(event.pos)
-                if self.menu.choice == 0:
-                    self.titleBg.toggleActive()
-                    self.title.toggleActive()
-                    self.menu.active = not self.menu.active
-                elif self.menu.choice == 1:
-                    if event.button == 1:
-                        self.menu.currentLevel += 1
-                        if self.menu.currentLevel >= len(levels.LEVELS):
-                            self.menu.currentLevel = 0
-                    elif event.button == 3:
-                        self.menu.currentLevel -= 1
-                        if self.menu.currentLevel < 0:
-                            self.menu.currentLevel = len(levels.LEVELS) - 1
-                self.menu.choice = currentChoice
-                self.menu.setChoices()
+            pass
+#            if self.menu.active:
+#                currentChoice = self.menu.choice
+#                self.menu.choice = -1
+#                self.menu.imageCollide(event.pos)
+#                if self.menu.choice == 0:
+#                    self.titleBg.toggleActive()
+#                    self.title.toggleActive()
+#                    self.menu.active = not self.menu.active
+#                elif self.menu.choice == 1:
+#                    if event.button == 1:
+#                        self.menu.currentLevel += 1
+#                        if self.menu.currentLevel >= len(levels.LEVELS):
+#                            self.menu.currentLevel = 0
+#                    elif event.button == 3:
+#                        self.menu.currentLevel -= 1
+#                        if self.menu.currentLevel < 0:
+#                            self.menu.currentLevel = len(levels.LEVELS) - 1
+#                self.menu.choice = currentChoice
+#                self.menu.setChoices()
 
 if __name__ == '__main__':
     pygame.init()
