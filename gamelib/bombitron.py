@@ -29,10 +29,8 @@ def main():
                     sys.exit()
                 else:
                     menu.menu.startChoices = False
-                    menu.menu.setChoices()
                     menu.active = True
                     menu.reset()
-                print "key pressed"
 
             if menu.active:
                 menu.eventHandler(event)
@@ -46,7 +44,7 @@ def main():
             menu.update(tick)
         else:
             if not bombGrid:
-                bombGrid = BombGridManager(win, menu.menu.currentLevel)
+                bombGrid = BombGridManager(win, menu.currentLevel)
                 
             bombGrid.update(tick)
 
