@@ -16,6 +16,7 @@ TEXT_RECT_POS = (180, 270)
 BACK_RECT_POS = (345, 290)
 FORWARD_RECT_POS = (455, 290)
 PLAY_RECT_POS = (320, 230)
+NEWGAME_RECT_POS = (320, 385)
 
 class TitleBackground:
     def __init__(self, win):
@@ -129,8 +130,6 @@ class Title:
             self.bomb.draw()
         self.explosion.draw()
 
-START_CHOICES = ['Play!', 'Level']
-RESUME_CHOICES = ['Resume', 'Level', 'New Game!']
 
 class LevelSelect:
     def __init__(self, win):
@@ -221,6 +220,36 @@ class LevelSelect:
         self.win.blit(self.forwardImage, self.forwardRect.topleft)
         self.win.blit(self.levelText, self.levelRect.topleft)
 
+class MenuItem(object):
+    def __init__(self, win, text, pos):
+        self.win = win
+        self.pos = pos
+        self.text = text
+        self.active = False
+        self.finished = False
+
+        self.speed = 0
+        self.setText()
+
+    def setText(self):
+        self.item = AWESOME_FONT.render(self.text, True, (0, 0, 0))
+        self.itemActive = AWESOME_FONT.render(self.text, True, (255, 0, 0))
+
+        self.rect = self.item.get_rect()
+        self.rect.center = self.pos
+
+    def update(self, tick):
+        if self.finished:
+            self.speed += 2
+            self.rect.right += self.speed
+
+    def draw(self):
+        if not self.active:
+            self.win.blit(self.item, self.rect.topleft)
+        else:
+            self.win.blit(self.itemActive, self.rect.topleft)
+
+
 class Menu(object):
     def __init__(self, win):
         self.win = win
@@ -231,10 +260,20 @@ class Menu(object):
         self.levelSelect = LevelSelect(self.win)
         self.reset()
 
-    def reset(self):
-        self.setText()
+    def reset(self, newGame=True):
+        self.newGame = newGame
         self._finished = False
         self.levelSelect.reset()
+
+        if newGame:
+            self.items = [
+                MenuItem(self.win, 'Play!', PLAY_RECT_POS)
+            ]
+        else:
+            self.items = [
+                MenuItem(self.win, 'Resume!', PLAY_RECT_POS),
+                MenuItem(self.win, 'New Game!', NEWGAME_RECT_POS)
+            ]
 
     def getFinished(self):
         return self._finished
@@ -242,48 +281,43 @@ class Menu(object):
     def setFinished(self, *args):
         self._finished = True
         self.levelSelect.finished = True
-        print "finished!"
+        for item in self.items:
+            item.finished = True
 
     finished = property(getFinished, setFinished)
 
-    def setText(self, active=False):
-        if not active:
-            self.text = AWESOME_FONT.render("Play!", True, (0, 0, 0))
-        else:
-            self.text = AWESOME_FONT.render("Play!", True, (255, 0, 0))
-
-        self.textRect = self.text.get_rect()
-        self.textRect.center = PLAY_RECT_POS
-        self.textSpeed = 0
-
     def eventHandler(self, event):
-        self.levelSelect.eventHandler(event)
-
-        if self.finished:
+        if self._finished:
             return
 
+        self.levelSelect.eventHandler(event)
+
         if event.type == pygame.MOUSEMOTION:
-            if self.textRect.collidepoint(event.pos):
-                self.setText(active=True)
-            else:
-                self.setText()
+            for item in self.items:
+                if item.rect.collidepoint(event.pos):
+                    item.active = True
+                else:
+                    item.active = False
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            if self.textRect.collidepoint(event.pos):
-                self.textRect.left -= 2
-                self.textRect.bottom += 2
+            for item in self.items:
+                if item.rect.collidepoint(event.pos):
+                    item.rect.left -= 2
+                    item.rect.bottom += 2
         elif event.type == pygame.MOUSEBUTTONUP:
-            self.textRect.center = PLAY_RECT_POS
+            for item in self.items:
+                item.rect.center = item.pos
 
     def update(self, tick):
         self.levelSelect.update(tick)
 
-        if self._finished:
-            self.textSpeed += 2
-            self.textRect.right += self.textSpeed
+        for item in self.items:
+            item.update(tick)
 
     def draw(self):
-        self.win.blit(self.text, self.textRect.topleft)
         self.levelSelect.draw()
+
+        for item in self.items:
+            item.draw()
 
 
 class TitleManager:
@@ -291,7 +325,6 @@ class TitleManager:
         self.active = True
         self.win = win
         self.currentLevel = 0
-
         self.reset()
 
     def reset(self):
@@ -300,8 +333,8 @@ class TitleManager:
         if not hasattr(self, 'menu'):
             self.menu = Menu(self.win)
         else:
-            self.menu.reset()
-        print "reset"
+            self.menu.reset(newGame=False)
+        self.resetBombs = False
 
     def update(self, tick):
         self.titleBg.update(tick)
@@ -321,12 +354,15 @@ class TitleManager:
             self.menu.eventHandler(event)
 
         if event.type == pygame.MOUSEBUTTONUP:
-            if self.menu.textRect.collidepoint(event.pos):
-                self.currentLevel = self.menu.levelSelect.currentLevel
-                self.titleBg.toggleActive()
-                self.title.toggleActive()
-                self.menu.finished = True
-                #self.active = False
+            for count, item in enumerate(self.menu.items):
+                if item.rect.collidepoint(event.pos):
+                    self.currentLevel = self.menu.levelSelect.currentLevel
+                    self.titleBg.toggleActive()
+                    self.title.toggleActive()
+                    self.menu.finished = True
+
+                    if item.text == 'New Game!':
+                        self.resetBombs = True
 
 if __name__ == '__main__':
     pygame.init()

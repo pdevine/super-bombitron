@@ -42,10 +42,13 @@ def main():
 
         if menu.active:
             menu.update(tick)
+            if menu.resetBombs:
+                bombGrid = None
+                menu.resetBombs = False
         else:
             if not bombGrid:
                 bombGrid = BombGridManager(win, menu.currentLevel)
-                
+
             bombGrid.update(tick)
 
             if bombGrid.finished:
