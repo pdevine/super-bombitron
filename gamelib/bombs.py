@@ -229,6 +229,18 @@ class Grid:
         else:
             return pos + self.width + 1
 
+    def around(self, pos):
+        tiles = []
+
+        for place in [self.upleft, self.up, self.upright, 
+                      self.left, self.right,
+                      self.downleft, self.down, self.downright]:
+            tileNum = place(pos)
+            if tileNum != -1:
+                tiles.append(tileNum)
+
+        return tiles
+
 class BombGrid(Grid):
     def __init__(self, win, width=10, height=10, totalBombs=9, levelTime=40,
                  totalFlags=9, blinkTime=-1):
@@ -321,12 +333,6 @@ class BombGrid(Grid):
         self.flagCount.draw(self.flags)
         self.bombCount.draw(self.totalBombs)
 
-        #flagCountText = "%d/%d" % (self.flags, self.totalBombs)
-        #flagCountImg = self.ft.render(flagCountText, True, (0, 0, 0))
-        #self.win.blit(flagCountImg,
-        #    (self.win.get_width() - flagCountImg.get_width() - EDGE_WIDTH, 20))
-
-
         if (self.gridState == GAME_OVER and self.winner) or \
            self.gridState == GAME_PAUSED:
             if self.gridState == GAME_OVER:
@@ -345,7 +351,6 @@ class BombGrid(Grid):
                           (gameTextRect.topleft[0] - 5,
                            gameTextRect.topleft[1] + 5))
             self.win.blit(gameTextImg, gameTextRect.topleft)
-
 
         self.bombEffect.draw()
 
@@ -417,6 +422,12 @@ class BombGrid(Grid):
 
             if button == 1:
                 if self.gridState == GAME_SET_BOMBS and pos != -1:
+                    # only reveal a tile if the tile is the same when
+                    # the button was pressed as it is when it's released
+                    if pos != self.inverseTilePos:
+                        self.grid[pos].inverse = False
+                        return
+
                     # start the game over
                     self.setBombs(pos)
                     self.revealPos(pos)
@@ -434,6 +445,12 @@ class BombGrid(Grid):
                     if self.grid[pos].flagged:
                         return
 
+                    # only reveal a tile if the tile is the same when
+                    # the button was pressed as it is when it's released
+                    if pos != self.inverseTilePos:
+                        self.grid[pos].inverse = False
+                        return
+
                     self.revealPos(pos)
                     if self.grid[pos].bomb:
                         self.grid[pos].hitBomb = True
@@ -443,10 +460,10 @@ class BombGrid(Grid):
                         self.explosionEffect.explode()
 
             elif button == 2:
-                self.grid[pos].inverse = False
+                self.resetInverseTiles()
 
             elif button == 3:
-                if self.gridState == GAME_OVER:
+                if self.gridState == GAME_OVER or pos == -1:
                     return
 
                 self.grid[pos].inverse = False
@@ -468,12 +485,18 @@ class BombGrid(Grid):
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
             button = event.button
+                
+            pos = self.getTilePos(event.pos)
+            if pos == -1:
+                return
 
-            if button in [1, 3]:
-                pos = self.getTilePos(event.pos)
-                if pos == -1:
-                    return
+            if not self.grid[pos].revealed:
                 self.grid[pos].inverse = True
+                self.inverseTilePos = pos
+
+            if button == 2:
+                if self.grid[pos].revealed and self.grid[pos].bombCount:
+                    self.showInverseTiles(pos)
 
         elif event.type == pygame.MOUSEMOTION:
             left, middle, right = event.buttons
@@ -481,7 +504,14 @@ class BombGrid(Grid):
             if left or right:
                 self.resetInverseTiles()
                 pos = self.getTilePos(event.pos)
-                self.grid[pos].inverse = True
+                if pos != -1:
+                    self.grid[pos].inverse = True
+
+    def showInverseTiles(self, pos):
+        tiles = self.around(pos)
+        for tilePos in tiles:
+            if not self.grid[tilePos].revealed:
+                self.grid[tilePos].inverse = True
 
     def resetInverseTiles(self):
         for tile in self.grid:
