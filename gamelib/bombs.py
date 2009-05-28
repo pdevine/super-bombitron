@@ -669,6 +669,9 @@ class BombGridManager:
     def eventHandler(self, event):
         if self.slideTiles.finished:
             self.bombGrid.eventHandler(event)
+        else:
+            if event.type == pygame.MOUSEBUTTONUP:
+                self.slideTiles.finished = True
 
 def main(boardType):
     pygame.init()
