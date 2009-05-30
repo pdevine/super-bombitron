@@ -38,6 +38,7 @@ import os.path
 
 import effects
 import levels
+import cutscenes
 
 from util import dataName
 
@@ -574,6 +575,8 @@ class BombGridManager:
         self.bombGrid.offsetX = self.offsetX
         self.bombGrid.offsetY = self.offsetY
 
+        self.cutscene = None
+
     def loadLevel(self, levelNum):
         level = levels.LEVELS[levelNum]
 
@@ -602,6 +605,12 @@ class BombGridManager:
 
 
     def update(self, tick):
+        if self.cutscene:
+            self.cutscene.update(tick)
+            if not self.cutscene.active:
+                self.cutscene = None
+            return
+
         if not self.slideTiles.finished:
             self.slideTiles.update(tick)
         else:
@@ -613,8 +622,12 @@ class BombGridManager:
                 self.fallingTiles.update(tick)
                 if self.fallingTiles.finished:
 
-                    if self.bombGrid.winner:    
+                    if self.bombGrid.winner and not self.cutscene:
                         self.levelNum += 1
+
+                        if self.levelNum == 2:
+                            self.cutscene = cutscenes.Cutscene1(self.win)
+
                         if self.levelNum >= len(levels.LEVELS):
                             self.finished = True
                             return
@@ -641,6 +654,10 @@ class BombGridManager:
             self.awesomeSmallFt.render(self.levelDescText, True, (0, 0, 0))
 
     def draw(self):
+        if self.cutscene:
+            self.cutscene.draw()
+            return
+
         if not self.slideTiles.finished:
             self.slideTiles.draw()
 

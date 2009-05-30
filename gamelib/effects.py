@@ -93,7 +93,7 @@ class SparkManager:
 
 class Bomb:
     def __init__(self, win, totalTime=10, rot=0, pos=(170, 200),
-                 finalPos=(170, 200)):
+                 finalPos=(170, 200), showSparks=True, showCaution=False):
         self.image = BOMB_IMG.copy()
         self.pos = pos
         self.finalPos = finalPos
@@ -107,8 +107,13 @@ class Bomb:
         self.rect = BOMB_IMG.get_rect()
         self.rect.center = self.pos
 
+        self.showSparks = showSparks
+        self.showCaution = showCaution
+
         self.sparks = SparkManager(win, 
             (self.rect.x + self.image.get_width(), self.rect.y))
+
+        self.caution = AWESOME_FT.render('!', True, (0, 0, 0))
 
     def explode(self):
         self.rect.center = self.finalPos
@@ -142,6 +147,8 @@ class Bomb:
                 self.rect.centerx = self.finalPos[0]
                 self.sparks.pos = self.rect.topright
 
+        #print self.rot
+
     def draw(self):
         self.win.blit(self.image, self.rect.topleft)
 
@@ -157,7 +164,11 @@ class Bomb:
                  self.rect.y+27))
 
         if self.rect.centerx == self.finalPos[0]:
-            self.sparks.draw()
+            if self.showSparks:
+                self.sparks.draw()
+            if self.showCaution:
+                self.win.blit(self.caution,
+                    (self.rect.centerx, self.rect.centery - 60))
 
 class Explosion:
     def __init__(self, win, pos):
