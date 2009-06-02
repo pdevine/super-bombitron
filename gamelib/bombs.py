@@ -625,8 +625,8 @@ class BombGridManager:
                     if self.bombGrid.winner and not self.cutscene:
                         self.levelNum += 1
 
-                        if self.levelNum == 2:
-                            self.cutscene = cutscenes.Cutscene1(self.win)
+                        #if self.levelNum == 2:
+                        #    self.cutscene = cutscenes.Cutscene1(self.win)
 
                         if self.levelNum >= len(levels.LEVELS):
                             self.finished = True
