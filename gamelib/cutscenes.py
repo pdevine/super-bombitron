@@ -49,7 +49,7 @@ class Cutscene1(Cutscene):
         self.text = Title(self.win, "The Meeting")
 
         self.bombs = [
-            Bomb(self.win, 7, pos=(73,230), finalPos=(73,230)),
+            Bomb(self.win, 6, pos=(-10,230), finalPos=(73,230), rot=84),
             Bomb(self.win, -1, pos=(570,230), finalPos=(190,230), rot=-21,
                  showSparks=False, showCaution=True),
             Bomb(self.win, -1, pos=(626,230), finalPos=(246,230), rot=-21,

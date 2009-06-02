@@ -93,11 +93,15 @@ class SparkManager:
 
 class Bomb:
     def __init__(self, win, totalTime=10, rot=0, pos=(170, 200),
-                 finalPos=(170, 200), showSparks=True, showCaution=False):
+                 finalPos=(170, 200), showSparks=True, showCaution=False,
+                 showRot=False):
         self.image = BOMB_IMG.copy()
         self.pos = pos
         self.finalPos = finalPos
         self.win = win
+
+        # used for debugging
+        self.showRot = showRot
 
         self.totalTime = totalTime
 
@@ -126,7 +130,6 @@ class Bomb:
         self.rot = self.startRot
 
     def update(self, tick):
-        self.totalTime -= tick / 1000.0
         self.sparks.update(tick)
 
         center = self.rect.center
@@ -146,8 +149,12 @@ class Bomb:
             if self.rect.centerx < self.finalPos[0]:
                 self.rect.centerx = self.finalPos[0]
                 self.sparks.pos = self.rect.topright
+        else:
+            # only count time if we're not rolling
+            self.totalTime -= tick / 1000.0
 
-        #print self.rot
+        if self.showRot:
+            print self.rot
 
     def draw(self):
         self.win.blit(self.image, self.rect.topleft)
@@ -157,13 +164,14 @@ class Bomb:
         else:
             color = (255, 0, 0)
 
-        if self.totalTime >= 0:
-            timerText = AWESOME_FT.render("%d" % self.totalTime, True, color)
-            self.win.blit(timerText,
-                (centerImage(self.image, timerText) + self.rect.x,
-                 self.rect.y+27))
-
         if self.rect.centerx == self.finalPos[0]:
+            if self.totalTime >= 0:
+                timerText = \
+                    AWESOME_FT.render("%d" % self.totalTime, True, color)
+                self.win.blit(timerText,
+                    (centerImage(self.image, timerText) + self.rect.x,
+                     self.rect.y+27))
+
             if self.showSparks:
                 self.sparks.draw()
             if self.showCaution:
