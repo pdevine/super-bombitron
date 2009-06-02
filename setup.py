@@ -7,14 +7,30 @@ Usage:
 
 from setuptools import setup
 import glob
+import sys
 
 APP = ['gamelib/bombitron.py']
 DATA_FILES = glob.glob('data/*.png') + glob.glob('data/*.ttf')
 OPTIONS = {'argv_emulation': True}
 
-setup(
-    app=APP,
-    data_files=DATA_FILES,
-    options={'py2app': OPTIONS},
-    setup_requires=['py2app'],
-)
+#setup(
+#    app=APP,
+#    data_files=DATA_FILES,
+#    options={'py2app': OPTIONS},
+#    setup_requires=['py2app'],
+#)
+
+if sys.platform == 'darwin':
+    extra_options = dict(
+        setup_requires=['py2app'],
+        app=APP,
+        options={'py2app' : OPTIONS}
+    )
+elif sys.platform == 'win32':
+    extra_options = dict(
+        setup_requires=['py2exe'],
+        app=APP,
+    )
+
+setup(name='Super Bombitron', **extra_options)
+
