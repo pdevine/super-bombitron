@@ -23,12 +23,14 @@ OPTIONS = {'argv_emulation': True}
 if sys.platform == 'darwin':
     extra_options = dict(
         setup_requires=['py2app'],
+        data_files=DATA_FILES,
         app=APP,
         options={'py2app' : OPTIONS}
     )
 elif sys.platform == 'win32':
     extra_options = dict(
         setup_requires=['py2exe'],
+        data_files=DATA_FILES,
         app=APP,
     )
 
