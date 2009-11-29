@@ -326,6 +326,7 @@ class TitleManager:
         self.win = win
         self.currentLevel = 0
         self.reset()
+        self.selected = False
 
     def reset(self):
         self.titleBg = TitleBackground(self.win)
@@ -335,6 +336,7 @@ class TitleManager:
         else:
             self.menu.reset(newGame=False)
         self.resetBombs = False
+        self.selected = False
 
     def update(self, tick):
         self.titleBg.update(tick)
@@ -354,12 +356,16 @@ class TitleManager:
             self.menu.eventHandler(event)
 
         if event.type == pygame.MOUSEBUTTONUP:
+            if self.selected:
+                return
+
             for count, item in enumerate(self.menu.items):
                 if item.rect.collidepoint(event.pos):
                     self.currentLevel = self.menu.levelSelect.currentLevel
                     self.titleBg.toggleActive()
                     self.title.toggleActive()
                     self.menu.finished = True
+                    self.selected = True
 
                     if item.text == 'New Game!':
                         self.resetBombs = True
