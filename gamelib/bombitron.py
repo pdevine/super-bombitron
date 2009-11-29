@@ -12,6 +12,8 @@ SCREEN_HEIGHT = 480
 def main():
     pygame.init()
 
+    pygame.display.set_caption('Super Bombitron')
+
     win = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
     clock = pygame.time.Clock()
