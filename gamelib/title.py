@@ -11,12 +11,16 @@ from bombs import dataName
 
 TILE_IMG = pygame.image.load(dataName('tile.png'))
 AWESOME_FONT = pygame.font.Font(dataName('badabb__.ttf'), 70)
+AWESOME_FONT_SM = pygame.font.Font(dataName('badabb__.ttf'), 30)
+
+ESC_TEXT = AWESOME_FONT_SM.render("Press 'ESC' to Quit", True, (0, 0, 0))
 
 TEXT_RECT_POS = (180, 270)
 BACK_RECT_POS = (345, 290)
 FORWARD_RECT_POS = (455, 290)
 PLAY_RECT_POS = (320, 230)
 NEWGAME_RECT_POS = (320, 385)
+ESC_RECT_POS = (212, 420)
 
 class TitleBackground:
     def __init__(self, win):
@@ -350,6 +354,8 @@ class TitleManager:
         self.titleBg.draw()
         self.title.draw()
         self.menu.draw()
+	if not self.selected:
+            self.win.blit(ESC_TEXT, ESC_RECT_POS)
 
     def eventHandler(self, event):
         if self.menu.active:
